@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Timer{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="bg-white rounded-lg shadow p-8">
+        <h1 class="text-xl font-semibold text-gray-900 mb-6 text-center">Zeiterfassung</h1>
+        <div hx-get="{% url 'timesessions:timer_status' %}" hx-trigger="every 30s" hx-swap="outerHTML">
+            {% include "timesessions/partials/timer_widget.html" %}
+        </div>
+    </div>
+    <div class="mt-4 text-center">
+        <a href="{% url 'timesessions:entries' %}" class="text-blue-600 hover:text-blue-700 text-sm">Alle Einträge anzeigen</a>
+    </div>
+</div>
+{% endblock %}

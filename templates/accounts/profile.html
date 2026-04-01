@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Mein Profil{% endblock %}
+{% block content %}
+<h1 class="text-xl font-semibold text-gray-900 mb-4">Mein Profil</h1>
+<div class="bg-white rounded-lg shadow p-6 max-w-lg">
+    <div class="space-y-3 text-sm">
+        <div class="flex justify-between">
+            <span class="text-gray-500">Name</span>
+            <span class="font-medium">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-500">E-Mail</span>
+            <span class="font-medium">{{ user.email }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-500">Beschäftigungsart</span>
+            <span class="font-medium">{{ profile.get_employment_type_display }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-500">Wochenarbeitszeit</span>
+            <span class="font-medium">{{ profile.weekly_work_hours }}h</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-500">Urlaubsanspruch</span>
+            <span class="font-medium">{{ profile.annual_leave_days }} Tage</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-500">Einstellungsdatum</span>
+            <span class="font-medium">{{ profile.hire_date|date:"d.m.Y"|default:"–" }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-gray-500">Bundesland</span>
+            <span class="font-medium">{{ profile.get_federal_state_display }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

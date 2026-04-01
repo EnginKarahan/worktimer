@@ -1,0 +1,50 @@
+# Ergänzung zu /opt/infrastruktur/docker-compose.yml auf dem Server
+# Diese Datei ist für die lokale Referenz — auf dem Server manuell einfügen
+
+services:
+  arbeitszeit:
+    build: ./arbeitszeit
+    container_name: arbeitszeit
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    ports:
+      - "8040:8000"
+    volumes:
+      - ./data/arbeitszeit/static:/app/static
+      - ./data/arbeitszeit/media:/app/media
+    env_file: ./arbeitszeit/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  arbeitszeit_celery:
+    build: ./arbeitszeit
+    container_name: arbeitszeit_celery
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    command: celery -A config worker -l info --concurrency=2
+    env_file: ./arbeitszeit/.env
+    depends_on:
+      arbeitszeit:
+        condition: service_healthy
+
+  arbeitszeit_celery_beat:
+    build: ./arbeitszeit
+    container_name: arbeitszeit_celery_beat
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file: ./arbeitszeit/.env
+    depends_on:
+      arbeitszeit:
+        condition: service_healthy

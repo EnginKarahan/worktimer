@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Überstunden{% endblock %}
+{% block content %}
+<h1 class="text-xl font-semibold text-gray-900 mb-4">Überstundenkonto</h1>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+        <p class="text-sm text-gray-500">Aktueller Saldo</p>
+        <p class="text-3xl font-bold {% if balance_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            {% if balance_minutes >= 0 %}+{% endif %}{{ balance_hours|floatformat:1 }}h
+        </p>
+        <p class="text-xs text-gray-400 mt-1">{{ balance_minutes }} Minuten</p>
+    </div>
+</div>
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-base font-medium text-gray-900">Transaktionen</h2>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monat</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Minuten</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Stunden</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for tx in transactions %}
+            <tr>
+                <td class="px-6 py-3 text-sm text-gray-600">{{ tx.transaction_date|date:"d.m.Y" }}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">{{ tx.get_transaction_type_display }}</td>
+                <td class="px-6 py-3 text-sm text-gray-500">{{ tx.reference_month }}</td>
+                <td class="px-6 py-3 text-sm text-right {% if tx.amount_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if tx.amount_minutes >= 0 %}+{% endif %}{{ tx.amount_minutes }}
+                </td>
+                <td class="px-6 py-3 text-sm text-right {% if tx.amount_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if tx.amount_minutes >= 0 %}+{% endif %}{{ tx.amount_minutes|floatformat:0|add:"0"|default:"0" }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Keine Transaktionen.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

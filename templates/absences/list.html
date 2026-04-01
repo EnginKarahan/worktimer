@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Abwesenheiten{% endblock %}
+{% block content %}
+<div class="flex justify-between mb-4">
+    <h1 class="text-xl font-semibold text-gray-900">Meine Abwesenheiten</h1>
+    <a href="{% url 'absences:create' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">+ Antrag stellen</a>
+</div>
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Von</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bis</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tage</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for a in absences %}
+            <tr>
+                <td class="px-6 py-3 text-sm text-gray-900">{{ a.leave_type.name }}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">{{ a.start_date|date:"d.m.Y" }}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">{{ a.end_date|date:"d.m.Y" }}</td>
+                <td class="px-6 py-3 text-sm text-gray-600">{{ a.duration_days }}</td>
+                <td class="px-6 py-3">
+                    <span class="px-2 py-1 text-xs rounded-full font-medium
+                        {% if a.status == 'APPROVED' %}bg-green-100 text-green-700
+                        {% elif a.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+                        {% elif a.status == 'REJECTED' %}bg-red-100 text-red-700
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ a.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Keine Abwesenheiten.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

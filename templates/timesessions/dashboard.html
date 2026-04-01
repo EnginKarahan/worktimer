@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Timer Widget -->
+    <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Heutiger Timer</h2>
+        <div hx-get="{% url 'timesessions:timer_status' %}" hx-trigger="every 30s" hx-swap="outerHTML" id="timer-widget">
+            {% include "timesessions/partials/timer_widget.html" %}
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Heute</h2>
+        {% for entry in today_entries %}
+        <div class="flex justify-between py-2 border-b border-gray-100 text-sm">
+            <span class="text-gray-600">{{ entry.start_time|time:"H:i" }}{% if entry.end_time %} – {{ entry.end_time|time:"H:i" }}{% endif %}</span>
+            <span class="font-medium">{{ entry.net_minutes|floatformat:0 }} min</span>
+        </div>
+        {% empty %}
+        <p class="text-gray-400 text-sm">Noch keine Einträge heute.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Recent Entries -->
+<div class="mt-6 bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900">Heutige Einträge</h2>
+    </div>
+    <div class="divide-y divide-gray-100">
+        {% for entry in today_entries %}
+        <div class="px-6 py-3 flex justify-between items-center text-sm">
+            <span class="text-gray-700">{{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i"|default:"läuft..." }}</span>
+            <span class="px-2 py-1 rounded-full text-xs font-medium
+                {% if entry.status == 'RUNNING' %}bg-green-100 text-green-700
+                {% elif entry.status == 'PAUSED' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ entry.get_status_display }}
+            </span>
+            <span class="text-gray-500">{{ entry.net_minutes }} min</span>
+        </div>
+        {% empty %}
+        <div class="px-6 py-8 text-center text-gray-400">Noch keine Einträge heute.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

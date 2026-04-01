@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "arbeitszeit"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1,<6.0",
+    "djangorestframework>=3.15",
+    "django-allauth[socialaccount]>=65.0",
+    "mysqlclient>=2.2",
+    "redis>=5.0",
+    "celery>=5.4",
+    "django-celery-beat>=2.7",
+    "python-decouple>=3.8",
+    "WeasyPrint>=62.0",
+    "openpyxl>=3.1",
+    "workalendar>=17.0",
+    "django-ratelimit>=4.1",
+    "Pillow>=10.0",
+    "gunicorn>=22.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apps*", "config*"]

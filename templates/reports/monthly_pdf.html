@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a1a1a; }
+  .header { display: flex; justify-content: space-between; border-bottom: 2px solid #2563EB; padding-bottom: 12px; margin-bottom: 16px; }
+  .title { font-size: 14pt; font-weight: bold; color: #2563EB; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th { background: #2563EB; color: white; padding: 6px 8px; text-align: left; font-size: 9pt; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9pt; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  .summary { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 12px; margin-bottom: 16px; }
+  .signatures { margin-top: 40px; display: flex; justify-content: space-between; }
+  .sig-block { border-top: 1px solid #374151; padding-top: 8px; width: 200px; font-size: 9pt; color: #6b7280; }
+  .footer { position: fixed; bottom: 0; width: 100%; font-size: 8pt; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 4px; }
+</style>
+</head>
+<body>
+<div class="header">
+    <div>
+        <div class="title">Arbeitszeitnachweis</div>
+        <div>{{ company_name }} | {{ user.get_full_name|default:user.username }}</div>
+    </div>
+    <div style="text-align:right">
+        <div style="font-weight:bold">{{ month_name }}</div>
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Datum</th><th>Tag</th><th>Beginn</th><th>Ende</th>
+            <th>Pause (min)</th><th>Netto (h)</th><th>Anmerkung</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in entries %}
+        <tr>
+            <td>{{ e.date|date:"d.m.Y" }}</td>
+            <td>{{ e.date|date:"D" }}</td>
+            <td>{{ e.start_time|time:"H:i" }}</td>
+            <td>{{ e.end_time|time:"H:i"|default:"–" }}</td>
+            <td>{{ e.break_minutes }}</td>
+            <td>{{ e.net_minutes|floatformat:2|stringformat:"s" }}</td>
+            <td>{% if e.status == 'AUTO_CLOSED' %}Automatisch{% endif %} {{ e.notes }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;color:#9ca3af">Keine Einträge</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="summary">
+    <strong>Zusammenfassung:</strong>
+    Netto-Arbeitszeit: {{ total_net_hours|floatformat:2 }}h |
+    Überstunden-Saldo: {{ ot_balance_minutes }} min
+</div>
+
+<div class="signatures">
+    <div class="sig-block">Mitarbeiter: _________________<br>Datum: __________</div>
+    <div class="sig-block">Vorgesetzter: ________________<br>Datum: __________</div>
+</div>
+
+<div class="footer">
+    Erstellt: {{ generated_at|date:"d.m.Y H:i" }} | Seite <pdf:pagenumber> / <pdf:pagecount>
+</div>
+</body>
+</html>

@@ -11,4 +11,5 @@ urlpatterns = [
     path("timer/pause/", views.pause_view, name="pause"),
     path("timer/resume/", views.resume_view, name="resume"),
     path("entries/", views.entries_list, name="entries"),
+    path("entries/<int:pk>/correct/", views.correct_entry, name="correct_entry"),
 ]

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ employee.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <a href="{% url 'hr:employee_list' %}" class="text-blue-600 hover:underline text-sm">← Mitarbeiterliste</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ employee.get_full_name|default:employee.username }}</h1>
+        <p class="text-gray-500 text-sm">{{ employee.email }}</p>
+    </div>
+    <div class="space-x-2">
+        <a href="{% url 'hr:employee_edit' employee.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Bearbeiten</a>
+        <a href="{% url 'hr:employee_delete' employee.pk %}" class="bg-red-100 text-red-700 px-4 py-2 rounded text-sm hover:bg-red-200">Deaktivieren</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-sm text-gray-500">Überstunden-Saldo</div>
+        <div class="text-2xl font-bold {% if balance_hours < 0 %}text-red-600{% else %}text-green-600{% endif %}">
+            {{ balance_hours }} h
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-sm text-gray-500">Status heute</div>
+        {% if active_entry %}
+        <div class="text-lg font-semibold text-green-600">Eingestempelt seit {{ active_entry.start_time|time:"H:i" }}</div>
+        {% elif current_absence %}
+        <div class="text-lg font-semibold text-orange-600">{{ current_absence.leave_type.name }}</div>
+        {% else %}
+        <div class="text-lg font-semibold text-gray-400">Nicht eingestempelt</div>
+        {% endif %}
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-sm text-gray-500">Rolle</div>
+        <div class="text-lg font-semibold">{{ employee.userprofile.get_role_display }}</div>
+        <div class="text-sm text-gray-500">{{ employee.userprofile.get_employment_type_display }}, {{ employee.userprofile.weekly_work_hours }} h/Woche</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">Letzte Abwesenheiten</h2>
+            <div class="space-x-2">
+                <a href="{% url 'hr:employee_absences' employee.pk %}" class="text-blue-600 text-sm hover:underline">Alle</a>
+                <a href="{% url 'hr:enter_sick_leave' employee.pk %}" class="text-orange-600 text-sm hover:underline">Krankmeldung</a>
+            </div>
+        </div>
+        {% for absence in recent_absences %}
+        <div class="flex justify-between text-sm py-1 border-b">
+            <span>{{ absence.leave_type.name }}</span>
+            <span class="text-gray-500">{{ absence.start_date|date:"d.m" }}–{{ absence.end_date|date:"d.m.Y" }}</span>
+            <span class="{% if absence.status == 'APPROVED' %}text-green-600{% elif absence.status == 'REJECTED' %}text-red-600{% else %}text-yellow-600{% endif %}">
+                {{ absence.get_status_display }}
+            </span>
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-500">Keine Abwesenheiten.</p>
+        {% endfor %}
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">Berichte</h2>
+        </div>
+        <div x-data="{ year: new Date().getFullYear(), month: new Date().getMonth() + 1 }" class="space-y-3">
+            <div class="flex space-x-2">
+                <select x-model="year" class="border rounded px-2 py-1 text-sm">
+                    {% for y in "2023 2024 2025 2026 2027"|split:" " %}
+                    <option value="{{ y }}">{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <select x-model="month" class="border rounded px-2 py-1 text-sm">
+                    <option value="1">Januar</option><option value="2">Februar</option><option value="3">März</option>
+                    <option value="4">April</option><option value="5">Mai</option><option value="6">Juni</option>
+                    <option value="7">Juli</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">Oktober</option><option value="11">November</option><option value="12">Dezember</option>
+                </select>
+            </div>
+            <div class="flex space-x-2">
+                <a :href="`{% url 'hr:employee_pdf' employee.pk %}?year=${year}&month=${month}`"
+                   class="bg-red-100 text-red-700 px-3 py-1.5 rounded text-sm hover:bg-red-200">PDF</a>
+                <a :href="`{% url 'hr:employee_excel' employee.pk %}?year=${year}&month=${month}`"
+                   class="bg-green-100 text-green-700 px-3 py-1.5 rounded text-sm hover:bg-green-200">Excel</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -67,7 +67,8 @@ class ApprovalService:
             self.approve(req, approver=None, comment="Auto-genehmigt (kein Manager zugewiesen)")
         return req
 
-    def approve(self, request: AbsenceRequest, approver, comment: str = ""):
+    def approve(self, request: AbsenceRequest, approver, comment: str = "", http_request=None):
+        from apps.core.models import AuditLog
         with transaction.atomic():
             request = AbsenceRequest.objects.select_for_update().get(pk=request.pk)
             if request.status != "PENDING":
@@ -89,10 +90,16 @@ class ApprovalService:
                     transaction_date=request.start_date,
                     approved_by=approver,
                 )
+            AuditLog.log(
+                approver, "absence_approved", request,
+                new={"comment": comment, "approver": str(approver)},
+                request=http_request,
+            )
             from apps.absences.tasks import notify_user_approved
             notify_user_approved.delay(request.id)
 
-    def reject(self, request: AbsenceRequest, approver, comment: str = ""):
+    def reject(self, request: AbsenceRequest, approver, comment: str = "", http_request=None):
+        from apps.core.models import AuditLog
         with transaction.atomic():
             request = AbsenceRequest.objects.select_for_update().get(pk=request.pk)
             if request.status != "PENDING":
@@ -102,3 +109,26 @@ class ApprovalService:
             request.approved_at = now()
             request.approval_comment = comment
             request.save()
+            AuditLog.log(
+                approver, "absence_rejected", request,
+                new={"comment": comment, "approver": str(approver)},
+                request=http_request,
+            )
+
+    def enter_sick_leave_for_employee(self, hr_user, employee, start_date: date, end_date: date):
+        """HR enters sick leave directly for an employee (auto-approved)."""
+        req = self.submit_request(
+            user=employee,
+            leave_type_code="SICK",
+            start_date=start_date,
+            end_date=end_date,
+            reason="Von HR erfasst",
+        )
+        if req.status == "PENDING":
+            self.approve(req, approver=hr_user, comment="Von HR direkt erfasst")
+        from apps.core.models import AuditLog
+        AuditLog.log(
+            hr_user, "sick_leave_entered_by_hr", req,
+            new={"employee": str(employee), "start": str(start_date), "end": str(end_date)},
+        )
+        return req

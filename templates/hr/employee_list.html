@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Mitarbeiterliste{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">Mitarbeiter</h1>
+    <a href="{% url 'hr:employee_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">+ Neuer Mitarbeiter</a>
+</div>
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">E-Mail</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rolle</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Beschäftigung</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stunden/Woche</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for emp in employees %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-medium">
+                    <a href="{% url 'hr:employee_detail' emp.pk %}" class="text-blue-600 hover:underline">{{ emp.get_full_name|default:emp.username }}</a>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ emp.email }}</td>
+                <td class="px-4 py-3 text-sm">
+                    {% if emp.userprofile.role == "HR" %}
+                    <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded">Personalmanagement</span>
+                    {% elif emp.userprofile.role == "ADMIN" %}
+                    <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded">Admin</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">Mitarbeiter</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ emp.userprofile.get_employment_type_display }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">{{ emp.userprofile.weekly_work_hours }}</td>
+                <td class="px-4 py-3 text-sm space-x-2">
+                    <a href="{% url 'hr:employee_edit' emp.pk %}" class="text-blue-600 hover:underline">Bearbeiten</a>
+                    <a href="{% url 'hr:employee_entries' emp.pk %}" class="text-gray-600 hover:underline">Zeiten</a>
+                    <a href="{% url 'hr:employee_absences' emp.pk %}" class="text-gray-600 hover:underline">Abwesenheiten</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Keine Mitarbeiter gefunden.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "apps.projects",
     "apps.reports",
     "apps.api",
+    "apps.hr",
 ]
 
 MIDDLEWARE = [
@@ -58,6 +59,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
+                "apps.core.context_processors.user_role",
             ],
         },
     },

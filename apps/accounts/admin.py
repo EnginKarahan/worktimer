@@ -4,9 +4,9 @@ from .models import UserProfile, WorkSchedule
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "employment_type", "weekly_work_hours", "annual_leave_days", "federal_state"]
-    search_fields = ["user__username", "user__email"]
-    list_filter = ["employment_type", "federal_state"]
+    list_display = ["user", "role", "employment_type", "weekly_work_hours", "annual_leave_days", "federal_state", "department"]
+    search_fields = ["user__username", "user__email", "user__first_name", "user__last_name"]
+    list_filter = ["role", "employment_type", "federal_state"]
 
 
 @admin.register(WorkSchedule)

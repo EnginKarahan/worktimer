@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Abwesenheiten – {{ employee.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <a href="{% url 'hr:employee_detail' employee.pk %}" class="text-blue-600 hover:underline text-sm">← {{ employee.get_full_name }}</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Abwesenheiten: {{ employee.get_full_name|default:employee.username }}</h1>
+    </div>
+    <a href="{% url 'hr:enter_sick_leave' employee.pk %}" class="bg-orange-100 text-orange-700 px-4 py-2 rounded text-sm hover:bg-orange-200">Krankmeldung erfassen</a>
+</div>
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Von</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bis</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tage</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for absence in absences %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-sm font-medium">{{ absence.leave_type.name }}</td>
+                <td class="px-4 py-2 text-sm">{{ absence.start_date|date:"d.m.Y" }}</td>
+                <td class="px-4 py-2 text-sm">{{ absence.end_date|date:"d.m.Y" }}</td>
+                <td class="px-4 py-2 text-sm">{{ absence.duration_days }}</td>
+                <td class="px-4 py-2 text-sm">
+                    <span class="px-2 py-0.5 rounded text-xs {% if absence.status == 'APPROVED' %}bg-green-100 text-green-700{% elif absence.status == 'REJECTED' %}bg-red-100 text-red-700{% elif absence.status == 'PENDING' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ absence.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Keine Abwesenheiten.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

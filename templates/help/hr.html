@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Handbuch Personalmanagement{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Handbuch für Personalmanagement</h1>
+    <p class="text-gray-500 mt-1">Erweiterte Funktionen für Personalverantwortliche</p>
+</div>
+
+<div class="space-y-6">
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">1. HR-Dashboard</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Das <strong>HR-Dashboard</strong> (Menü: „HR") zeigt eine Tagesübersicht: Wer ist heute abwesend, wer ist eingestempelt.</li>
+            <li>Offene Urlaubsanträge werden mit direkten Genehmigen/Ablehnen-Buttons angezeigt.</li>
+            <li>Mitarbeiter mit Minus- oder hohen Überstunden werden hervorgehoben.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">2. Mitarbeiterverwaltung</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Unter <strong>HR → Mitarbeiter</strong> können Sie alle aktiven Mitarbeiter einsehen, bearbeiten und anlegen.</li>
+            <li>Neue Mitarbeiter: Klicken Sie auf „+ Neuer Mitarbeiter", füllen Sie Basis- und Profildaten aus.</li>
+            <li>Mitarbeiter deaktivieren (DSGVO-konform): Setzen Sie den Status auf inaktiv. Daten bleiben erhalten.</li>
+            <li>Kontaktdaten (Telefon, Abteilung) werden im Profil gespeichert.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">3. Zeiteinträge korrigieren</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Im Mitarbeiterprofil unter „Zeiten" können Sie Zeiteinträge bis zu <strong>3 Monate</strong> zurück korrigieren.</li>
+            <li>Jede Korrektur erfordert eine Begründung (Pflicht für §16 ArbZG Betriebsprüfung).</li>
+            <li>Original-Start-/Endzeiten werden gesichert und im Audit-Log protokolliert.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">4. Urlaubsanträge genehmigen / ablehnen</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Offene Anträge erscheinen im HR-Dashboard und unter <strong>HR → Offene Anträge</strong>.</li>
+            <li>Genehmigen: Mit Klick auf „Genehmigen" (optional: Kommentar).</li>
+            <li>Ablehnen: Klicken Sie auf „Ablehnen" und geben Sie einen Ablehnungsgrund an.</li>
+            <li>Der Mitarbeiter wird automatisch benachrichtigt.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">5. Krankmeldung erfassen</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Öffnen Sie das Mitarbeiterprofil und klicken Sie auf „Krankmeldung erfassen".</li>
+            <li>Geben Sie Start- und Enddatum ein. Die Krankmeldung wird sofort als genehmigt eingetragen.</li>
+            <li>Mitarbeiter können Krankmeldungen auch selbst über Abwesenheiten → Krank einreichen.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">6. Berichte herunterladen</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Im Mitarbeiterprofil können Sie monatliche Arbeitszeitnachweise als PDF oder Excel für beliebige Mitarbeiter herunterladen.</li>
+            <li>Wählen Sie Jahr und Monat, dann das gewünschte Format.</li>
+            <li>Downloads werden im Audit-Log protokolliert.</li>
+        </ul>
+    </div>
+
+    <div class="bg-yellow-50 rounded-lg p-4 text-sm text-yellow-800">
+        <strong>DSGVO-Hinweis (§26 BDSG):</strong> Alle personenbezogenen Daten werden ausschließlich zur
+        Erfüllung arbeitsrechtlicher Pflichten (ArbZG, Entgeltfortzahlungsgesetz) verarbeitet.
+        Mitarbeiterdaten dürfen nicht für andere Zwecke genutzt werden.
+        Soft-Delete (Deaktivierung) wahrt das Löschrecht (Art. 17 DSGVO); endgültige Löschung nur durch Admin.
+    </div>
+
+</div>
+</div>
+{% endblock %}

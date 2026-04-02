@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Offene Urlaubsanträge{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'hr:dashboard' %}" class="text-blue-600 hover:underline text-sm">← HR Dashboard</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Offene Urlaubsanträge</h1>
+</div>
+
+{% if requests %}
+<div class="space-y-4">
+    {% for req in requests %}
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-start justify-between">
+            <div>
+                <a href="{% url 'hr:employee_detail' req.user.pk %}" class="font-medium text-blue-600 hover:underline">{{ req.user.get_full_name|default:req.user.username }}</a>
+                <div class="text-sm text-gray-600 mt-1">
+                    <span class="font-medium">{{ req.leave_type.name }}</span>
+                    · {{ req.start_date|date:"d.m.Y" }} – {{ req.end_date|date:"d.m.Y" }}
+                    · {{ req.duration_days }} Tage
+                </div>
+                {% if req.reason %}<div class="text-sm text-gray-500 mt-1">{{ req.reason }}</div>{% endif %}
+            </div>
+            <div class="flex space-x-2 ml-4">
+                <form method="post" action="{% url 'hr:approve_absence' req.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-green-100 text-green-700 px-3 py-1.5 rounded text-sm hover:bg-green-200">Genehmigen</button>
+                </form>
+                <a href="{% url 'hr:reject_absence' req.pk %}" class="bg-red-100 text-red-700 px-3 py-1.5 rounded text-sm hover:bg-red-200">Ablehnen</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">Keine offenen Anträge.</div>
+{% endif %}
+{% endblock %}

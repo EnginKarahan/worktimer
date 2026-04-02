@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Handbuch Mitarbeiter{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Handbuch für Mitarbeiter</h1>
+    <p class="text-gray-500 mt-1">Anleitung zur Nutzung des Arbeitszeittools</p>
+</div>
+
+<div class="space-y-6">
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">1. Ein- und Ausstempeln</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Klicken Sie im <strong>Dashboard</strong> oder <strong>Timer</strong> auf „Einstempeln", um die Arbeitszeit zu starten.</li>
+            <li>„Pause" pausiert den Timer. „Fortsetzen" setzt ihn fort.</li>
+            <li>„Ausstempeln" beendet die Arbeitszeit. Pflichtpausen (§4 ArbZG) werden automatisch hinzugefügt, falls nicht erfasst.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">2. Zeiteinträge korrigieren</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Unter <strong>Einträge</strong> können Sie abgeschlossene Zeiteinträge der letzten <strong>7 Tage</strong> korrigieren.</li>
+            <li>Klicken Sie auf „Korrigieren" neben dem betreffenden Eintrag.</li>
+            <li>Eine Begründung ist für die Betriebsprüfung (§16 ArbZG) <strong>Pflicht</strong>.</li>
+            <li>Ältere Korrekturen müssen beim Personalmanagement beantragt werden.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">3. Urlaubsantrag stellen</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Wählen Sie unter <strong>Abwesenheiten → Neu</strong> den Typ, Start- und Enddatum.</li>
+            <li>Bei „Urlaub" wird geprüft, ob ausreichend Urlaubstage vorhanden sind.</li>
+            <li>Ihr Antrag wird an Ihre vorgesetzte Person weitergeleitet.</li>
+            <li>Sie erhalten eine Benachrichtigung über Genehmigung oder Ablehnung.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">4. Krankmeldung</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Reichen Sie Ihre Krankmeldung unter <strong>Abwesenheiten → Neu → Krank</strong> ein.</li>
+            <li>Alternativ kann das Personalmanagement die Krankmeldung für Sie erfassen.</li>
+            <li>Ab dem 4. Kranktag ist in der Regel ein Attest erforderlich.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">5. Überstunden einsehen</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Unter <strong>Überstunden</strong> sehen Sie Ihren aktuellen Saldo (Plus- oder Minusstunden).</li>
+            <li>Monatliche Abrechnungen werden automatisch am Monatsanfang erstellt.</li>
+            <li>Überstundenausgleich beantragen Sie unter Abwesenheiten → Typ: Überstundenausgleich.</li>
+        </ul>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-3">6. Berichte herunterladen</h2>
+        <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+            <li>Unter <strong>Berichte</strong> können Sie monatliche Arbeitszeitnachweise als PDF oder Excel herunterladen.</li>
+            <li>Wählen Sie Jahr und Monat, dann das gewünschte Format.</li>
+        </ul>
+    </div>
+
+    <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
+        <strong>Hinweis (ArbZG):</strong> Die tägliche Höchstarbeitszeit beträgt 10 Stunden (§3 ArbZG).
+        Bei mehr als 6 Stunden Arbeit sind 30 Minuten Pause Pflicht, bei mehr als 9 Stunden 45 Minuten (§4 ArbZG).
+        Zwischen zwei Arbeitstagen gilt eine Mindestruhezeit von 11 Stunden (§5 ArbZG).
+    </div>
+
+</div>
+</div>
+{% endblock %}

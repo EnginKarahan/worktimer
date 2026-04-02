@@ -15,4 +15,6 @@ urlpatterns = [
     path("overtime/", include("apps.overtime.urls")),
     path("reports/", include("apps.reports.urls")),
     path("accounts/profile/", include("apps.accounts.urls")),
+    path("hr/", include("apps.hr.urls")),
+    path("help/", include("apps.core.urls")),
 ]

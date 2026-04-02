@@ -26,6 +26,13 @@ class TimeEntry(TimestampedModel):
     )
     notes = models.TextField(blank=True)
     violations_json = models.JSONField(null=True, blank=True)
+    is_manual_correction = models.BooleanField(default=False)
+    corrected_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="corrections_made"
+    )
+    correction_reason = models.TextField(blank=True)
+    original_start_time = models.DateTimeField(null=True, blank=True)
+    original_end_time = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["user", "date"])]

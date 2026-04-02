@@ -29,6 +29,10 @@
                     <a href="{% url 'absences:list' %}" class="text-blue-100 hover:text-white text-sm">Abwesenheiten</a>
                     <a href="{% url 'overtime:overview' %}" class="text-blue-100 hover:text-white text-sm">Überstunden</a>
                     <a href="{% url 'reports:overview' %}" class="text-blue-100 hover:text-white text-sm">Berichte</a>
+                    {% if user_role == "HR" or user_role == "ADMIN" %}
+                    <a href="{% url 'hr:dashboard' %}" class="text-yellow-300 hover:text-white text-sm font-medium">HR</a>
+                    {% endif %}
+                    <a href="{% url 'core:help' %}" class="text-blue-100 hover:text-white text-sm">Hilfe</a>
                     {% endif %}
                 </div>
                 <div class="flex items-center space-x-4">

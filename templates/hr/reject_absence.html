@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Antrag ablehnen{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-4">Antrag ablehnen</h1>
+    <div class="mb-4 p-3 bg-gray-50 rounded text-sm">
+        <strong>{{ absence.user.get_full_name }}</strong> – {{ absence.leave_type.name }}<br>
+        {{ absence.start_date|date:"d.m.Y" }} bis {{ absence.end_date|date:"d.m.Y" }} ({{ absence.duration_days }} Tage)
+    </div>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <div class="flex space-x-3">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm">Ablehnen</button>
+            <a href="{% url 'hr:pending_approvals' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">Abbrechen</a>
+        </div>
+    </form>
+</div>
+<style>textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; }</style>
+{% endblock %}

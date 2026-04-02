@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from .services import TimerService
-from .exceptions import AlreadyClockedInError, NotClockedInError
+from .services import TimerService, CorrectionService
+from .exceptions import AlreadyClockedInError, NotClockedInError, CorrectionWindowError
 from .models import TimeEntry
 
 
@@ -89,3 +89,51 @@ def resume_view(request):
 def entries_list(request):
     entries = TimeEntry.objects.filter(user=request.user).order_by("-date", "-start_time")
     return render(request, "timesessions/entries.html", {"entries": entries})
+
+
+@login_required
+def correct_entry(request, pk):
+    from django.shortcuts import get_object_or_404
+    from django.utils import timezone
+    import datetime
+
+    entry = get_object_or_404(TimeEntry, pk=pk, user=request.user)
+    service = CorrectionService()
+    max_days = service.get_max_correction_days(request.user)
+
+    if request.method == "POST":
+        try:
+            new_start_str = request.POST.get("start_time")
+            new_end_str = request.POST.get("end_time")
+            reason = request.POST.get("reason", "").strip()
+            if not reason:
+                messages.error(request, "Bitte geben Sie eine Begründung an.")
+                return redirect("timesessions:correct_entry", pk=pk)
+
+            tz = timezone.get_current_timezone()
+            new_start = timezone.make_aware(
+                datetime.datetime.fromisoformat(new_start_str), tz
+            )
+            new_end = timezone.make_aware(
+                datetime.datetime.fromisoformat(new_end_str), tz
+            )
+            if new_end <= new_start:
+                messages.error(request, "Endzeit muss nach der Startzeit liegen.")
+                return redirect("timesessions:correct_entry", pk=pk)
+
+            service.correct_entry(request.user, entry, new_start, new_end, reason)
+            messages.success(request, "Zeiteintrag wurde korrigiert.")
+            return redirect("timesessions:entries")
+        except CorrectionWindowError as e:
+            messages.error(request, str(e))
+            return redirect("timesessions:entries")
+
+    earliest = None
+    if max_days is not None:
+        earliest = (timezone.now().date() - datetime.timedelta(days=max_days)).isoformat()
+
+    return render(request, "timesessions/correct_entry.html", {
+        "entry": entry,
+        "max_days": max_days,
+        "earliest_date": earliest,
+    })

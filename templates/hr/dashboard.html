@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}HR Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">HR Dashboard – {{ today|date:"d.m.Y" }}</h1>
+    <a href="{% url 'hr:employee_list' %}" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Mitarbeiterliste</a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- Heute abwesend -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">Heute abwesend ({{ today_absences.count }})</h2>
+        {% if today_absences %}
+        <ul class="space-y-1 text-sm">
+            {% for a in today_absences %}
+            <li class="flex justify-between">
+                <a href="{% url 'hr:employee_detail' a.user.pk %}" class="text-blue-600 hover:underline">{{ a.user.get_full_name|default:a.user.username }}</a>
+                <span class="text-gray-500">{{ a.leave_type.name }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-gray-500">Niemand abwesend.</p>
+        {% endif %}
+    </div>
+
+    <!-- Jetzt eingestempelt -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">Jetzt eingestempelt ({{ clocked_in.count }})</h2>
+        {% if clocked_in %}
+        <ul class="space-y-1 text-sm">
+            {% for entry in clocked_in %}
+            <li class="flex justify-between">
+                <a href="{% url 'hr:employee_detail' entry.user.pk %}" class="text-blue-600 hover:underline">{{ entry.user.get_full_name|default:entry.user.username }}</a>
+                <span class="text-gray-500">seit {{ entry.start_time|time:"H:i" }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-gray-500">Niemand eingestempelt.</p>
+        {% endif %}
+    </div>
+
+    <!-- Offene Anträge -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">Offene Urlaubsanträge ({{ pending_requests.count }})</h2>
+        {% if pending_requests %}
+        <ul class="space-y-2 text-sm">
+            {% for req in pending_requests %}
+            <li class="border-b pb-2">
+                <div class="flex justify-between">
+                    <a href="{% url 'hr:employee_detail' req.user.pk %}" class="text-blue-600 hover:underline font-medium">{{ req.user.get_full_name|default:req.user.username }}</a>
+                    <span class="text-gray-500">{{ req.leave_type.name }}</span>
+                </div>
+                <div class="flex justify-between text-gray-500 mt-1">
+                    <span>{{ req.start_date|date:"d.m" }} – {{ req.end_date|date:"d.m.Y" }}</span>
+                    <div class="space-x-2">
+                        <form method="post" action="{% url 'hr:approve_absence' req.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-green-600 hover:underline">Genehmigen</button>
+                        </form>
+                        <a href="{% url 'hr:reject_absence' req.pk %}" class="text-red-600 hover:underline">Ablehnen</a>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'hr:pending_approvals' %}" class="text-blue-600 text-sm hover:underline mt-2 block">Alle anzeigen →</a>
+        {% else %}
+        <p class="text-sm text-gray-500">Keine offenen Anträge.</p>
+        {% endif %}
+    </div>
+
+    <!-- Minusstunden -->
+    {% if deficit_users %}
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-400">
+        <h2 class="text-lg font-semibold text-red-700 mb-3">Minusstunden ({{ deficit_users|length }})</h2>
+        <ul class="space-y-1 text-sm">
+            {% for item in deficit_users %}
+            <li class="flex justify-between">
+                <a href="{% url 'hr:employee_detail' item.user.pk %}" class="text-blue-600 hover:underline">{{ item.user.get_full_name|default:item.user.username }}</a>
+                <span class="text-red-600 font-medium">{{ item.balance_hours }} h</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Hohe Überstunden -->
+    {% if high_overtime_users %}
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-400">
+        <h2 class="text-lg font-semibold text-yellow-700 mb-3">Hohe Überstunden ({{ high_overtime_users|length }})</h2>
+        <ul class="space-y-1 text-sm">
+            {% for item in high_overtime_users %}
+            <li class="flex justify-between">
+                <a href="{% url 'hr:employee_detail' item.user.pk %}" class="text-blue-600 hover:underline">{{ item.user.get_full_name|default:item.user.username }}</a>
+                <span class="text-yellow-600 font-medium">+{{ item.balance_hours }} h</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

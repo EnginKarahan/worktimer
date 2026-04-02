@@ -11,6 +11,12 @@ EMPLOYMENT_TYPES = [
     ("INTERN", "Praktikant"),
 ]
 
+ROLE_CHOICES = [
+    ("EMPLOYEE", "Mitarbeiter"),
+    ("HR", "Personalmanagement"),
+    ("ADMIN", "Admin"),
+]
+
 FEDERAL_STATES = [
     ("BW", "Baden-Württemberg"), ("BY", "Bayern"), ("BE", "Berlin"),
     ("BB", "Brandenburg"), ("HB", "Bremen"), ("HH", "Hamburg"),
@@ -33,6 +39,9 @@ class UserProfile(TimestampedModel):
     federal_state = models.CharField(max_length=2, choices=FEDERAL_STATES, default="BY")
     leave_carry_over = models.BooleanField(default=True)
     max_carry_over_days = models.DecimalField(max_digits=4, decimal_places=1, default=5.0)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="EMPLOYEE", verbose_name="Rolle")
+    phone = models.CharField(max_length=30, blank=True, verbose_name="Telefon")
+    department = models.CharField(max_length=100, blank=True, verbose_name="Abteilung")
 
     class Meta:
         verbose_name = "Mitarbeiterprofil"

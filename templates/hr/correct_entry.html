@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Zeiteintrag korrigieren{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'hr:employee_entries' employee.pk %}" class="text-blue-600 hover:underline text-sm">← Zeiteinträge {{ employee.get_full_name }}</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Zeiteintrag korrigieren</h1>
+</div>
+
+<div class="max-w-lg bg-white rounded-lg shadow p-6">
+    <div class="mb-4 p-3 bg-gray-50 rounded text-sm">
+        <div class="font-medium">Aktueller Eintrag ({{ entry.date|date:"d.m.Y" }})</div>
+        <div class="text-gray-600">Start: {{ entry.start_time|date:"d.m.Y H:i" }} | Ende: {% if entry.end_time %}{{ entry.end_time|date:"H:i" }}{% else %}–{% endif %}</div>
+        {% if max_days %}
+        <div class="text-orange-600 text-xs mt-1">Korrekturfenster: bis {{ max_days }} Tage zurück (frühestens {{ earliest_date }})</div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Neue Startzeit</label>
+            <input type="datetime-local" name="start_time"
+                   value="{{ entry.start_time|date:'Y-m-d' }}T{{ entry.start_time|time:'H:i' }}"
+                   {% if earliest_date %}min="{{ earliest_date }}T00:00"{% endif %}
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Neue Endzeit</label>
+            <input type="datetime-local" name="end_time"
+                   value="{% if entry.end_time %}{{ entry.end_time|date:'Y-m-d' }}T{{ entry.end_time|time:'H:i' }}{% endif %}"
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Begründung <span class="text-red-500">*</span></label>
+            <textarea name="reason" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required
+                      placeholder="Pflichtfeld für Betriebsprüfung"></textarea>
+        </div>
+        <div class="flex space-x-3">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">Korrektur speichern</button>
+            <a href="{% url 'hr:employee_entries' employee.pk %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

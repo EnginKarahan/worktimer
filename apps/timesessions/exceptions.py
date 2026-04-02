@@ -6,3 +6,7 @@ class AlreadyClockedInError(Exception):
 
 class NotClockedInError(Exception):
     pass
+
+
+class CorrectionWindowError(Exception):
+    pass

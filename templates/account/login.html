@@ -31,18 +31,12 @@
             </button>
         </form>
 
-        {% load socialaccount %}
-        {% get_providers as socialaccount_providers %}
-        {% if socialaccount_providers %}
         <div class="mt-4 border-t pt-4 text-center">
-            {% for provider in socialaccount_providers %}
-            <a href="{{ provider.get_login_url }}"
+            <a href="/accounts/oidc/nextcloud/login/"
                class="w-full inline-block bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 text-sm font-medium">
                 Mit Nextcloud anmelden
             </a>
-            {% endfor %}
         </div>
-        {% endif %}
     </div>
 </div>
 

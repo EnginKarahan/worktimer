@@ -21,6 +21,22 @@
         {% empty %}
         <p class="text-gray-400 text-sm">Noch keine Einträge heute.</p>
         {% endfor %}
+
+        <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+            <h3 class="text-sm font-medium text-gray-700">Urlaub {{ year }}</h3>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Anspruch</span>
+                <span class="font-medium text-blue-700">{{ vacation_entitlement }} Tage</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Verbleibend</span>
+                <span class="font-medium {% if vacation_balance < 0 %}text-red-600{% else %}text-green-700{% endif %}">{{ vacation_balance }} Tage</span>
+            </div>
+            <div class="flex justify-between text-sm mt-1">
+                <span class="text-gray-500">Überstunden</span>
+                <span class="font-medium {% if ot_balance_hours < 0 %}text-red-600{% else %}text-green-700{% endif %}">{{ ot_balance_hours }} h</span>
+            </div>
+        </div>
     </div>
 </div>
 

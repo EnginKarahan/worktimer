@@ -11,10 +11,10 @@ class HolidayAdmin(admin.ModelAdmin):
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
-    list_display = ["created_at", "actor", "action", "entity_type", "entity_id"]
-    list_filter = ["action", "entity_type"]
+    list_display = ["created_at", "actor", "actor_role", "action", "entity_type", "entity_id"]
+    list_filter = ["action", "entity_type", "actor_role"]
     search_fields = ["actor__username", "action"]
-    readonly_fields = ["actor", "action", "entity_type", "entity_id", "old_values", "new_values", "ip_address", "created_at"]
+    readonly_fields = ["actor", "actor_role", "action", "entity_type", "entity_id", "old_values", "new_values", "ip_address", "created_at"]
 
     def has_add_permission(self, request):
         return False

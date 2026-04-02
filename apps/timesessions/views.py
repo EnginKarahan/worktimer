@@ -10,14 +10,25 @@ from .models import TimeEntry
 
 @login_required
 def dashboard(request):
+    from django.utils.timezone import now
+    from apps.absences.services import calculate_vacation_entitlement, ApprovalService
+    from apps.overtime.services import OvertimeCalculator
     service = TimerService()
     active = service.get_active_entry(request.user)
     today_entries = TimeEntry.objects.filter(
-        user=request.user, date=__import__("django.utils.timezone", fromlist=["now"]).now().date()
+        user=request.user, date=now().date()
     ).order_by("-start_time")
+    year = now().year
+    vac_entitlement = calculate_vacation_entitlement(request.user, year)
+    vac_balance = ApprovalService()._get_vacation_balance(request.user, year=year)
+    ot_balance = OvertimeCalculator().get_balance_minutes(request.user)
     return render(request, "timesessions/dashboard.html", {
         "active_entry": active,
         "today_entries": today_entries,
+        "vacation_entitlement": vac_entitlement,
+        "vacation_balance": vac_balance,
+        "ot_balance_hours": round(ot_balance / 60, 1),
+        "year": year,
     })
 
 

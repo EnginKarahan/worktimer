@@ -106,18 +106,25 @@ def employee_detail(request, pk):
     calculator = OvertimeCalculator()
     balance = calculator.get_balance_minutes(employee)
     today = timezone.now().date()
+    year = today.year
     current_absence = AbsenceRequest.objects.filter(
         user=employee, status="APPROVED",
         start_date__lte=today, end_date__gte=today,
     ).first()
     active_entry = TimeEntry.objects.filter(user=employee, status__in=["RUNNING", "PAUSED"]).first()
     recent_absences = AbsenceRequest.objects.filter(user=employee).order_by("-start_date")[:10]
+    from apps.absences.services import calculate_vacation_entitlement, ApprovalService
+    vac_entitlement = calculate_vacation_entitlement(employee, year)
+    vac_balance = ApprovalService()._get_vacation_balance(employee, year=year)
     return render(request, "hr/employee_detail.html", {
         "employee": employee,
         "balance_hours": round(balance / 60, 1),
         "current_absence": current_absence,
         "active_entry": active_entry,
         "recent_absences": recent_absences,
+        "vacation_entitlement": vac_entitlement,
+        "vacation_balance": vac_balance,
+        "year": year,
     })
 
 

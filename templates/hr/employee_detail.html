@@ -22,6 +22,13 @@
         </div>
     </div>
     <div class="bg-white rounded-lg shadow p-4">
+        <div class="text-sm text-gray-500">Urlaub {{ year }}</div>
+        <div class="text-2xl font-bold {% if vacation_balance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
+            {{ vacation_balance }} / {{ vacation_entitlement }} Tage
+        </div>
+        <div class="text-xs text-gray-400">verbleibend / Anspruch</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
         <div class="text-sm text-gray-500">Status heute</div>
         {% if active_entry %}
         <div class="text-lg font-semibold text-green-600">Eingestempelt seit {{ active_entry.start_time|time:"H:i" }}</div>

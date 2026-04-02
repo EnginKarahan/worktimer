@@ -11,6 +11,68 @@ from .exceptions import InsufficientVacationError, InsufficientOvertimeError
 User = get_user_model()
 
 
+def _get_work_days_per_week(user, year: int) -> float:
+    """Count days with >0 minutes in the WorkSchedule effective at start of year."""
+    from apps.accounts.models import WorkSchedule
+    reference = date(year, 1, 1)
+    schedule = (
+        WorkSchedule.objects
+        .filter(user=user, effective_from__lte=reference)
+        .order_by("-effective_from")
+        .first()
+    )
+    if schedule is None:
+        schedule = WorkSchedule.objects.filter(user=user).order_by("effective_from").first()
+    if schedule is None:
+        return 5.0
+    day_minutes = [
+        schedule.monday_minutes, schedule.tuesday_minutes,
+        schedule.wednesday_minutes, schedule.thursday_minutes,
+        schedule.friday_minutes, schedule.saturday_minutes,
+        schedule.sunday_minutes,
+    ]
+    return float(sum(1 for m in day_minutes if m > 0))
+
+
+def calculate_vacation_entitlement(user, year: int) -> float:
+    """
+    Returns vacation days entitled for the given year.
+
+    Applies:
+    1. Base: UserProfile.annual_leave_days (contractual 5-day-week basis)
+    2. Work-days adjustment: base × actual_days_per_week / 5
+    3. Pro-rata for hire year (§5 BUrlG): base × months_from_hire / 12
+    4. §4 BUrlG 6-month Wartezeit: entitlement = 0 if wait period not
+       satisfied within the year.
+    """
+    profile = getattr(user, "userprofile", None)
+    if profile is None:
+        return 0.0
+
+    base = float(profile.annual_leave_days)
+    work_days = _get_work_days_per_week(user, year)
+    adjusted = base * work_days / 5.0
+
+    hire_date = profile.hire_date
+    if hire_date is None or hire_date.year < year:
+        return round(adjusted, 1)
+    if hire_date.year > year:
+        return 0.0
+
+    # Hire year: check §4 Wartezeit (6 calendar months)
+    wait_month = hire_date.month + 6
+    wait_year = hire_date.year + (wait_month - 1) // 12
+    wait_month = ((wait_month - 1) % 12) + 1
+    wait_end = date(wait_year, wait_month, 1)
+
+    if wait_end > date(year, 12, 31):
+        return 0.0
+
+    # Pro-rata: months from hire month to December
+    months_worked = 13 - hire_date.month
+    return round(adjusted * months_worked / 12, 1)
+
+
 class ApprovalService:
     def _calculate_working_days(self, user, start: date, end: date) -> float:
         federal_state = getattr(getattr(user, "userprofile", None), "federal_state", "BY")
@@ -22,16 +84,17 @@ class ApprovalService:
             current += timedelta(days=1)
         return days
 
-    def _get_vacation_balance(self, user) -> float:
-        profile = user.userprofile
-        annual = float(profile.annual_leave_days)
+    def _get_vacation_balance(self, user, year=None) -> float:
+        if year is None:
+            year = now().year
+        entitlement = calculate_vacation_entitlement(user, year)
         used = float(AbsenceRequest.objects.filter(
             user=user,
             leave_type__code="VACATION",
             status="APPROVED",
-            start_date__year=now().year,
+            start_date__year=year,
         ).aggregate(total=Sum("duration_days"))["total"] or 0)
-        return annual - used
+        return entitlement - used
 
     def submit_request(
         self, user, leave_type_code: str, start_date: date, end_date: date, reason: str = ""

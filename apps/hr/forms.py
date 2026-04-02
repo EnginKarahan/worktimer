@@ -18,16 +18,39 @@ class EmployeeUserForm(forms.ModelForm):
 
 
 class EmployeeProfileForm(forms.ModelForm):
+    roles = forms.MultipleChoiceField(
+        choices=ROLE_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Rollen",
+    )
+
     class Meta:
         model = UserProfile
         fields = [
-            "role", "employment_type", "weekly_work_hours", "annual_leave_days",
+            "employment_type", "weekly_work_hours", "annual_leave_days",
             "hire_date", "federal_state", "manager", "phone", "department",
             "leave_carry_over", "max_carry_over_days",
         ]
         widgets = {
             "hire_date": forms.DateInput(attrs={"type": "date"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            current = list(self.instance.user.roles.values_list("role", flat=True))
+            self.fields["roles"].initial = current
+
+    def save(self, commit=True):
+        profile = super().save(commit=commit)
+        if commit:
+            from apps.accounts.models import UserRole
+            chosen = set(self.cleaned_data.get("roles", []))
+            UserRole.objects.filter(user=profile.user).delete()
+            for r in chosen:
+                UserRole.objects.create(user=profile.user, role=r)
+        return profile
 
 
 class SickLeaveForm(forms.Form):

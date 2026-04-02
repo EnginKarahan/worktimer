@@ -9,8 +9,17 @@ from .exceptions import InsufficientVacationError, InsufficientOvertimeError
 
 @login_required
 def absence_list(request):
+    from apps.absences.services import calculate_vacation_entitlement
+    year = int(request.GET.get("year", timezone.now().year))
     absences = AbsenceRequest.objects.filter(user=request.user).order_by("-start_date")
-    return render(request, "absences/list.html", {"absences": absences})
+    entitlement = calculate_vacation_entitlement(request.user, year)
+    balance = ApprovalService()._get_vacation_balance(request.user, year=year)
+    return render(request, "absences/list.html", {
+        "absences": absences,
+        "vacation_entitlement": entitlement,
+        "vacation_balance": balance,
+        "year": year,
+    })
 
 
 @login_required

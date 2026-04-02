@@ -35,9 +35,22 @@
                     <a href="{% url 'core:help' %}" class="text-blue-100 hover:text-white text-sm">Hilfe</a>
                     {% endif %}
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
                     {% if user.is_authenticated %}
-                    <span class="text-blue-100 text-sm">{{ user.get_full_name|default:user.username }}</span>
+                    <span class="text-blue-100 text-sm hidden md:inline">{{ user.get_full_name|default:user.username }}</span>
+                    {% if user_roles|length > 1 %}
+                    <form method="post" action="{% url 'accounts:switch_role' %}">
+                        {% csrf_token %}
+                        <select name="role" onchange="this.form.submit()"
+                                class="text-xs bg-blue-800 text-white border border-blue-500 rounded px-2 py-1 cursor-pointer">
+                            {% for code, label in user_roles_display %}
+                            <option value="{{ code }}" {% if code == user_role %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    {% else %}
+                    <span class="text-blue-300 text-xs hidden sm:inline">{{ user_role }}</span>
+                    {% endif %}
                     <a href="{% url 'account_logout' %}" class="text-blue-100 hover:text-white text-sm">Abmelden</a>
                     {% else %}
                     <a href="{% url 'account_login' %}" class="text-white text-sm">Anmelden</a>

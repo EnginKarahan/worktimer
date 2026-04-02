@@ -28,6 +28,7 @@ class Holiday(TimestampedModel):
 
 class AuditLog(models.Model):
     actor = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    actor_role = models.CharField(max_length=20, blank=True)
     action = models.CharField(max_length=100)
     entity_type = models.CharField(max_length=100)
     entity_id = models.BigIntegerField()
@@ -45,12 +46,19 @@ class AuditLog(models.Model):
         verbose_name_plural = "Audit-Logs"
 
     @classmethod
-    def log(cls, actor, action, entity, old=None, new=None, request=None):
+    def log(cls, actor, action, entity, old=None, new=None, request=None, actor_role=""):
         ip = None
         if request:
             ip = request.META.get("REMOTE_ADDR")
+            if not actor_role:
+                try:
+                    from apps.core.permissions import get_active_role
+                    actor_role = get_active_role(request)
+                except Exception:
+                    pass
         cls.objects.create(
             actor=actor,
+            actor_role=actor_role,
             action=action,
             entity_type=entity.__class__.__name__,
             entity_id=entity.pk,

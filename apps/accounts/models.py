@@ -55,6 +55,20 @@ class UserProfile(TimestampedModel):
         return int(self.weekly_work_hours * 60 / 5)
 
 
+class UserRole(models.Model):
+    """Stores the roles assigned to a user (M2M replacement for single role field)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="roles")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    class Meta:
+        unique_together = [("user", "role")]
+        verbose_name = "Benutzerrolle"
+        verbose_name_plural = "Benutzerrollen"
+
+    def __str__(self):
+        return f"{self.user} – {dict(ROLE_CHOICES).get(self.role, self.role)}"
+
+
 class WorkSchedule(TimestampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="work_schedules")
     monday_minutes = models.IntegerField(default=480)

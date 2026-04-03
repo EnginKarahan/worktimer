@@ -581,10 +581,10 @@ def adjust_vacation(request, pk):
         )
         return redirect("hr:employee_detail", pk=pk)
 
-    vacation_service = VacationBalanceService()
+    from apps.absences.services import calculate_vacation_entitlement, ApprovalService
     year = timezone.now().year
-    entitlement = vacation_service.get_entitlement(employee, year)
-    balance = vacation_service.get_balance(employee, year)
+    entitlement = calculate_vacation_entitlement(employee, year)
+    balance = ApprovalService()._get_vacation_balance(employee, year=year)
 
     return render(
         request,

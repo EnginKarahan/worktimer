@@ -8,6 +8,7 @@ from apps.core.utils.german_law import (
     check_daily_max,
     collect_all_violations,
 )
+from .exceptions import CorrectionWindowError
 from .models import TimeEntry
 from .exceptions import AlreadyClockedInError, NotClockedInError
 
@@ -39,6 +40,7 @@ class TimerService:
             if not entry:
                 raise NotClockedInError("Kein laufender Zeiteintrag gefunden.")
             entry.status = "PAUSED"
+            entry.pause_started_at = now()
             entry.save()
             AuditLog.log(user, "pause", entry)
             return entry
@@ -50,6 +52,10 @@ class TimerService:
             ).first()
             if not entry:
                 raise NotClockedInError("Kein pausierter Zeiteintrag gefunden.")
+            if entry.pause_started_at:
+                pause_minutes = int((now() - entry.pause_started_at).total_seconds() / 60)
+                entry.break_minutes += pause_minutes
+            entry.pause_started_at = None
             entry.status = "RUNNING"
             entry.save()
             AuditLog.log(user, "resume", entry)
@@ -62,6 +68,12 @@ class TimerService:
             ).first()
             if not entry:
                 raise NotClockedInError("Kein aktiver Zeiteintrag gefunden.")
+
+            # If clocking out while paused, count the current pause duration
+            if entry.status == "PAUSED" and entry.pause_started_at:
+                pause_minutes = int((now() - entry.pause_started_at).total_seconds() / 60)
+                entry.break_minutes += pause_minutes
+                entry.pause_started_at = None
 
             entry.end_time = now()
             gross = entry.gross_minutes
@@ -109,7 +121,6 @@ class CorrectionService:
 
     def correct_entry(self, actor, entry: TimeEntry, new_start, new_end, reason: str) -> TimeEntry:
         from django.utils.timezone import now as tz_now
-        from .exceptions import CorrectionWindowError
 
         max_days = self.get_max_correction_days(actor)
         if max_days is not None:
@@ -135,6 +146,14 @@ class CorrectionService:
             entry.corrected_by = actor
             entry.correction_reason = reason
             entry.status = "MANUAL"
+
+            # Recalculate mandatory break for the corrected times
+            gross = int((new_end - new_start).total_seconds() / 60)
+            required = calculate_required_break(gross)
+            if entry.break_minutes < required:
+                entry.break_minutes = required
+                entry.required_break_minutes = required
+
             entry.save()
 
             AuditLog.log(

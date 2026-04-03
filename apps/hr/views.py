@@ -63,7 +63,7 @@ def hr_dashboard(request):
 
     ot_calculator = OvertimeCalculator()
     sollist = SollIstCalculator()
-    active_users = User.objects.filter(is_active=True).select_related("userprofile").order_by("last_name", "first_name")
+    active_users = User.objects.filter(is_active=True).exclude(username="admin").select_related("userprofile").order_by("last_name", "first_name")
     clocked_in_ids = set(clocked_in.values_list("user_id", flat=True))
     absent_ids = set(today_absences.values_list("user_id", flat=True))
 

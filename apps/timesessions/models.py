@@ -39,6 +39,7 @@ class TimeEntry(TimestampedModel):
     correction_reason = models.TextField(blank=True)
     original_start_time = models.DateTimeField(null=True, blank=True)
     original_end_time = models.DateTimeField(null=True, blank=True)
+    pause_started_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["user", "date"])]

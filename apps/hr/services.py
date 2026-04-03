@@ -115,6 +115,7 @@ class TimeEntryHRService:
         from apps.core.models import AuditLog
 
         with transaction.atomic():
+            from apps.core.utils.german_law import calculate_required_break
             tz = timezone.get_current_timezone()
 
             start_dt = timezone.make_aware(datetime.combine(date_val, start_time), tz)
@@ -122,12 +123,20 @@ class TimeEntryHRService:
             if end_time:
                 end_dt = timezone.make_aware(datetime.combine(date_val, end_time), tz)
 
+            # Apply mandatory break if user-entered break is insufficient
+            if end_dt:
+                gross = int((end_dt - start_dt).total_seconds() / 60)
+                required = calculate_required_break(gross)
+                if break_minutes < required:
+                    break_minutes = required
+
             entry = TimeEntry.objects.create(
                 user=user,
                 date=date_val,
                 start_time=start_dt,
                 end_time=end_dt,
                 break_minutes=break_minutes,
+                required_break_minutes=break_minutes,
                 project=project,
                 notes=notes,
                 status="MANUAL" if end_dt else "RUNNING",

@@ -209,7 +209,10 @@ class SollIstCalculator:
     """Calculate target (Soll) vs actual (Ist) hours for a month."""
 
     def calculate_monthly_hours(self, user: User, year: int, month: int) -> dict:
-        """Calculate Soll/Ist for a specific month."""
+        """Calculate Soll/Ist for a specific month.
+
+        For the current month, Soll is only counted up to today (not future days).
+        """
         from apps.core.utils.holiday_utils import is_working_day
         from apps.accounts.models import WorkSchedule
         from apps.timesessions.models import TimeEntry
@@ -223,6 +226,7 @@ class SollIstCalculator:
         holiday_days = 0
         absence_days = 0
 
+        today = date.today()
         last_day = 28
         while True:
             try:
@@ -230,6 +234,12 @@ class SollIstCalculator:
             except ValueError:
                 break
             last_day += 1
+
+        # For the current month cap Soll at today; past months use full month
+        if year == today.year and month == today.month:
+            soll_last_day = today.day
+        else:
+            soll_last_day = last_day
 
         absence_dates = set()
         if AbsenceRequest.objects.filter(
@@ -270,7 +280,7 @@ class SollIstCalculator:
             .order_by("effective_from")
         )
 
-        for day in range(1, last_day + 1):
+        for day in range(1, soll_last_day + 1):
             current_date = date(year, month, day)
             weekday = current_date.weekday()
 

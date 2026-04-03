@@ -1,4 +1,43 @@
-# Arbeitszeit — Self-Hosted Time Tracking for Alhambra
+# Arbeitszeit — Self-Hosted Time Tracking & HR Management
+
+## Produktbeschreibung
+
+**Arbeitszeit** ist eine selbst gehostete Webanwendung zur Arbeitszeiterfassung und Personalverwaltung, entwickelt mit Django. Sie ersetzt kommerzielle SaaS-Lösungen wie Kimai und ist vollständig DSGVO-konform, da alle Daten auf eigener Infrastruktur liegen.
+
+### Kernfunktionen im Überblick
+
+**Mitarbeiter-Self-Service:**
+- Live-Timer (Einstempeln / Pause / Ausstempeln) mit Echtzeit-Anzeige
+- Automatische Pausenberechnung nach §4 ArbZG (>6h Arbeit → 30 min Pflichtpause, >9h → 45 min)
+- Eigene Zeiteinträge einsehen und korrigieren (mit Korrekturfenster)
+- Urlaubsanträge stellen und Status verfolgen
+- Überstundenkonto mit Live-Saldo (laufender Monat + abgerechnete Monate)
+- Abwesenheitsübersicht, Berichte als PDF/Excel
+
+**HR-Personalmanagement:**
+- Vollständige Mitarbeiterverwaltung (anlegen, bearbeiten, deaktivieren)
+- Arbeitszeitplan pro Mitarbeiter (Minuten pro Wochentag, Gültigkeitszeitraum)
+- Monatliche Tagesübersicht (Timesheet) pro Mitarbeiter: alle Tage mit Soll/Ist, Feiertagen, Urlaubs- und Krankheitstagen, direktes Bearbeiten/Nachtragen pro Tag
+- Zeiteinträge für Mitarbeiter manuell erstellen, korrigieren, löschen (Soft-Delete mit Papierkorb)
+- Soll/Ist-Übersicht mit Monatsauswahl und Live-Berechnung
+- Urlaubsanträge genehmigen/ablehnen, Urlaub manuell korrigieren
+- Krankmeldungen erfassen inkl. AU-Bescheinigung (vorhanden / eingereicht am)
+- Abwesenheitstyp nachträglich ändern (z.B. Urlaub → Freistellung) mit Begründungspflicht
+- Überstunden manuell korrigieren
+- HR-Dashboard mit Echtzeit-Mitarbeitertabelle (Überstundensaldo, Urlaubsnutzung, Tagesstatus)
+
+**Compliance & Recht:**
+- Vollständige §3/§4/§5 ArbZG-Prüfung bei jeder Buchung
+- Einstellungsdatum-aware: keine Fehlzeiten für Zeiträume vor Beschäftigungsbeginn
+- Bundesland-spezifische Feiertagskalender für alle 16 Bundesländer (via `workalendar`)
+- Lückenloser Audit-Log aller Änderungen mit Akteur, Zeitstempel und IP
+
+**Integration:**
+- SSO über Nextcloud OIDC (PKCE)
+- iFrame-Einbettung in Nextcloud
+- REST API mit Token- und Session-Auth
+
+---
 
 A Django-based time tracking and absence management system built for the Alhambra team as a self-hosted replacement for Kimai. It runs on a Hetzner CPX31 server (Ubuntu 24.04) behind Nginx and is embedded as an iFrame in the team's Nextcloud instance.
 
@@ -6,17 +45,23 @@ A Django-based time tracking and absence management system built for the Alhambr
 
 ## Features
 
-- **Live timer** — clock in / pause / resume / clock out with real-time elapsed display (HTMX + Alpine.js)
+- **Live timer** — clock in / pause / resume / clock out with real-time elapsed display (HTMX + Alpine.js); pause duration automatically tracked in `break_minutes`
+- **ArbZG break enforcement** — mandatory breaks auto-applied on clock-out, manual entry, and correction (§4: 30 min >6h, 45 min >9h); existing entries fixable via `fix_missing_breaks` management command
 - **Manual time entries** — add, edit, and delete past entries with full audit trail
-- **Absence management** — vacation, sick leave, special leave, overtime compensation; multi-step approval workflow with email notifications
-- **Overtime accounting** — automatic monthly settlement (actual vs. target minutes); year-end carry-over
-- **Public-holiday awareness** — per-federal-state holiday calendar seeded via `workalendar`; target-hours calculation skips holidays
-- **ArbZG compliance** — §3/§4/§5 checks enforced on every clock-out (break auto-correction, daily max, 11 h rest period)
-- **Reports** — PDF (WeasyPrint) and Excel (openpyxl) monthly export per user
+- **Absence management** — vacation, sick leave, special leave, overtime compensation; multi-step approval workflow with email notifications; AU (Arbeitsunfähigkeitsbescheinigung) tracking per sick-leave entry
+- **Absence type change** — HR can change the leave type of any absence after the fact, with mandatory reason and audit log
+- **Overtime accounting** — automatic monthly settlement (actual vs. target minutes); year-end carry-over; live balance includes unsettled current month
+- **Public-holiday awareness** — per-federal-state holiday calendar via `workalendar`; target-hours calculation skips holidays and days before `hire_date`
+- **HR monthly timesheet** — full per-day calendar view per employee (`/hr/employees/<pk>/timesheet/<year>/<month>/`); color-coded by day type; inline add/edit/delete per day
+- **HR dashboard** — live employee overview table with overtime balance, vacation usage, and today's status
+- **Soll/Ist overview** — AJAX monthly selector per employee in HR detail view; capped at today for current month; respects hire date
+- **WorkSchedule management** — editable per-employee weekly schedule (minutes per weekday) with validity dates; integrated into employee edit form
+- **Reports** — PDF (WeasyPrint) and Excel (openpyxl) monthly export per user; includes absences
 - **REST API** — token + session auth, rate-limited endpoints for timer and report actions
 - **SSO** — Nextcloud OIDC via `django-allauth`; existing users auto-linked by e-mail
 - **Audit log** — every state change stored with actor, old/new values, and IP address
 - **Background tasks** — Celery + Celery Beat with 6 scheduled jobs (see below)
+- **Soft-delete** — HR-deleted time entries move to a trash with restore capability
 - **Multilingual UI** — German (default), English, Turkish
 
 ---

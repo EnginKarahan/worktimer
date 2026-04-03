@@ -51,6 +51,31 @@
     </tbody>
 </table>
 
+{% if absences %}
+<table>
+    <thead>
+        <tr>
+            <th>Abwesenheitstyp</th><th>Von</th><th>Bis</th><th>Tage</th><th>AU-Bescheinigung</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in absences %}
+        <tr>
+            <td>{{ a.leave_type.name }}</td>
+            <td>{{ a.start_date|date:"d.m.Y" }}</td>
+            <td>{{ a.end_date|date:"d.m.Y" }}</td>
+            <td>{{ a.duration_days }}</td>
+            <td>
+                {% if a.leave_type.code == "SICK" %}
+                    {% if a.au_vorhanden %}liegt vor{% if a.au_eingereicht_am %} ({{ a.au_eingereicht_am|date:"d.m.Y" }}){% endif %}{% else %}ausstehend{% endif %}
+                {% else %}–{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
 <div class="summary">
     <strong>Zusammenfassung:</strong>
     Netto-Arbeitszeit: {{ total_net_hours|floatformat:2 }}h |

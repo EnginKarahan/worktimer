@@ -50,6 +50,8 @@ urlpatterns = [
         views.employee_sollist_partial,
         name="employee_sollist_partial",
     ),
+    path("employees/<int:pk>/timesheet/", views.employee_timesheet, name="employee_timesheet"),
+    path("employees/<int:pk>/timesheet/<int:year>/<int:month>/", views.employee_timesheet, name="employee_timesheet_month"),
     path("trash/", views.trash, name="trash"),
     path("trash/<int:deleted_pk>/restore/", views.restore_entry, name="restore_entry"),
     path("absences/pending/", views.pending_approvals, name="pending_approvals"),

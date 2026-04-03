@@ -1,8 +1,11 @@
+from collections import defaultdict
 from datetime import date, datetime, timedelta
 from django.db import models, transaction
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from typing import Optional
+
+WEEKDAY_NAMES = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
 
 User = get_user_model()
 
@@ -387,3 +390,109 @@ class VacationBalanceService:
             return float(profile.annual_leave_days)
 
         return 25.0
+
+
+class TimesheetBuilder:
+    """Build a per-day breakdown of a month for HR timesheet view."""
+
+    def build(self, user: User, year: int, month: int) -> dict:
+        from apps.core.utils.holiday_utils import get_holidays_for_year
+        from apps.absences.models import AbsenceRequest
+        from apps.timesessions.models import TimeEntry
+        from apps.accounts.models import WorkSchedule
+
+        federal_state = getattr(getattr(user, "userprofile", None), "federal_state", "BY")
+
+        # Last day of month
+        last_day = 28
+        while True:
+            try:
+                date(year, month, last_day + 1)
+            except ValueError:
+                break
+            last_day += 1
+
+        month_start = date(year, month, 1)
+        month_end = date(year, month, last_day)
+
+        # Holidays map: date → name
+        holidays_map = {h[0]: h[1] for h in get_holidays_for_year(year, federal_state)}
+
+        # Absence map: date → AbsenceRequest
+        absence_date_map = {}
+        for req in AbsenceRequest.objects.filter(
+            user=user,
+            status="APPROVED",
+            start_date__lte=month_end,
+            end_date__gte=month_start,
+        ).select_related("leave_type"):
+            cur = max(req.start_date, month_start)
+            while cur <= min(req.end_date, month_end):
+                absence_date_map[cur] = req
+                cur += timedelta(days=1)
+
+        # Entries map: date → [TimeEntry]
+        entries_map = defaultdict(list)
+        for entry in TimeEntry.objects.filter(
+            user=user, date__year=year, date__month=month
+        ).order_by("start_time").select_related("project"):
+            entries_map[entry.date].append(entry)
+
+        # Active WorkSchedule
+        schedule = (
+            WorkSchedule.objects.filter(
+                user=user, effective_from__lte=month_end
+            )
+            .filter(models.Q(effective_to__isnull=True) | models.Q(effective_to__gte=month_start))
+            .order_by("-effective_from")
+            .first()
+        )
+
+        days = []
+        total_soll = 0
+        total_ist = 0
+
+        for day_num in range(1, last_day + 1):
+            d = date(year, month, day_num)
+            weekday = d.weekday()
+            is_weekend = weekday >= 5
+            holiday_name = holidays_map.get(d)
+            absence = absence_date_map.get(d)
+            entries = entries_map.get(d, [])
+
+            if is_weekend:
+                day_type = "weekend"
+                soll = 0
+            elif holiday_name:
+                day_type = "holiday"
+                soll = 0
+            elif absence:
+                lc = absence.leave_type.code if absence.leave_type else ""
+                day_type = "sick" if "SICK" in lc else "vacation" if "VACATION" in lc else "absence"
+                soll = 0
+            else:
+                day_type = "work"
+                soll = schedule.get_minutes_for_weekday(weekday) if schedule else 480
+
+            ist = sum(e.net_minutes for e in entries)
+            total_soll += soll
+            total_ist += ist
+
+            days.append({
+                "date": d,
+                "weekday_name": WEEKDAY_NAMES[weekday],
+                "type": day_type,
+                "holiday_name": holiday_name,
+                "absence": absence,
+                "entries": entries,
+                "soll_minutes": soll,
+                "ist_minutes": ist,
+                "balance_minutes": ist - soll,
+            })
+
+        return {
+            "days": days,
+            "total_soll_minutes": total_soll,
+            "total_ist_minutes": total_ist,
+            "total_balance_minutes": total_ist - total_soll,
+        }

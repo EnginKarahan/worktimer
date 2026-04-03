@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load time_filters %}
+{% block title %}Zeitübersicht {{ month_name }} – {{ employee.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between flex-wrap gap-2">
+    <div>
+        <a href="{% url 'hr:employee_detail' employee.pk %}" class="text-blue-600 hover:underline text-sm">← {{ employee.get_full_name }}</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Zeitübersicht: {{ month_name }}</h1>
+    </div>
+    <div class="flex items-center space-x-2">
+        <a href="{% url 'hr:employee_timesheet_month' employee.pk prev_year prev_month %}"
+           class="px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 text-sm">← Vormonat</a>
+        {% if next_year < today.year or next_year == today.year and next_month <= today.month %}
+        <a href="{% url 'hr:employee_timesheet_month' employee.pk next_year next_month %}"
+           class="px-3 py-1.5 bg-gray-100 rounded hover:bg-gray-200 text-sm">Nächster →</a>
+        {% endif %}
+        <a href="{% url 'hr:entry_create' employee.pk %}"
+           class="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm">+ Neuer Eintrag</a>
+    </div>
+</div>
+
+{# Summary row #}
+<div class="grid grid-cols-3 gap-4 mb-4">
+    <div class="bg-white rounded-lg shadow p-3 text-center">
+        <p class="text-xs text-gray-500">Soll</p>
+        <p class="text-xl font-semibold">{{ total_soll_minutes|hours_decimal }} h</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-3 text-center">
+        <p class="text-xs text-gray-500">Ist</p>
+        <p class="text-xl font-semibold">{{ total_ist_minutes|hours_decimal }} h</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-3 text-center">
+        <p class="text-xs text-gray-500">Saldo</p>
+        <p class="text-xl font-semibold {% if total_balance_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            {% if total_balance_minutes >= 0 %}+{% endif %}{{ total_balance_minutes|hours_decimal }} h
+        </p>
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-3 py-2 text-left font-medium text-gray-500 w-8">#</th>
+                <th class="px-3 py-2 text-left font-medium text-gray-500">Tag</th>
+                <th class="px-3 py-2 text-left font-medium text-gray-500">Einträge</th>
+                <th class="px-3 py-2 text-right font-medium text-gray-500">Soll</th>
+                <th class="px-3 py-2 text-right font-medium text-gray-500">Ist</th>
+                <th class="px-3 py-2 text-right font-medium text-gray-500">Saldo</th>
+                <th class="px-3 py-2 text-center font-medium text-gray-500">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for day in days %}
+            <tr class="
+                {% if day.type == 'weekend' %}bg-gray-50 text-gray-400
+                {% elif day.type == 'holiday' %}bg-blue-50
+                {% elif day.type == 'vacation' %}bg-green-50
+                {% elif day.type == 'sick' %}bg-orange-50
+                {% elif day.type == 'absence' %}bg-yellow-50
+                {% elif day.date == today %}bg-yellow-50 font-medium
+                {% endif %}
+                hover:bg-opacity-80
+            ">
+                <td class="px-3 py-2 text-gray-400">{{ day.date.day }}</td>
+                <td class="px-3 py-2">
+                    <span class="font-medium
+                        {% if day.type == 'weekend' %}text-gray-400
+                        {% elif day.type == 'holiday' %}text-blue-700
+                        {% elif day.type == 'vacation' %}text-green-700
+                        {% elif day.type == 'sick' %}text-orange-700
+                        {% else %}text-gray-800{% endif %}">
+                        {{ day.weekday_name|slice:":2" }}, {{ day.date|date:"d.m." }}
+                    </span>
+                    {% if day.type == 'holiday' %}
+                        <span class="ml-1 text-xs text-blue-500">{{ day.holiday_name }}</span>
+                    {% elif day.type == 'vacation' %}
+                        <span class="ml-1 text-xs text-green-600">Urlaub</span>
+                    {% elif day.type == 'sick' %}
+                        <span class="ml-1 text-xs text-orange-600">Krank</span>
+                    {% elif day.type == 'absence' %}
+                        <span class="ml-1 text-xs text-yellow-600">{{ day.absence.leave_type.name }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-3 py-2">
+                    {% for entry in day.entries %}
+                    <div class="flex items-center gap-2 {% if not forloop.first %}mt-1{% endif %}">
+                        <span class="text-gray-700">
+                            {{ entry.start_time|time:"H:i" }}–{% if entry.end_time %}{{ entry.end_time|time:"H:i" }}{% else %}<span class="text-green-600">läuft</span>{% endif %}
+                        </span>
+                        {% if entry.break_minutes %}
+                            <span class="text-gray-400 text-xs">{{ entry.break_minutes }} min Pause</span>
+                        {% endif %}
+                        {% if entry.project %}
+                            <span class="text-xs text-purple-600">{{ entry.project.name }}</span>
+                        {% endif %}
+                        <a href="{% url 'hr:employee_correct_entry' employee.pk entry.pk %}"
+                           class="text-blue-500 hover:underline text-xs">Bearbeiten</a>
+                        <a href="{% url 'hr:entry_delete' employee.pk entry.pk %}"
+                           class="text-red-400 hover:underline text-xs">Löschen</a>
+                    </div>
+                    {% empty %}
+                    {% if day.type == 'work' %}
+                        <span class="text-gray-300 text-xs italic">Kein Eintrag</span>
+                    {% endif %}
+                    {% endfor %}
+                </td>
+                <td class="px-3 py-2 text-right text-gray-500">
+                    {% if day.soll_minutes %}{{ day.soll_minutes|hours_decimal }}{% else %}–{% endif %}
+                </td>
+                <td class="px-3 py-2 text-right">
+                    {% if day.ist_minutes %}{{ day.ist_minutes|hours_decimal }}{% else %}–{% endif %}
+                </td>
+                <td class="px-3 py-2 text-right">
+                    {% if day.type == 'work' %}
+                        <span class="{% if day.balance_minutes > 0 %}text-green-600{% elif day.balance_minutes < 0 %}text-red-600{% else %}text-gray-500{% endif %}">
+                            {% if day.balance_minutes > 0 %}+{% endif %}{{ day.balance_minutes|hours_decimal }}
+                        </span>
+                    {% else %}–{% endif %}
+                </td>
+                <td class="px-3 py-2 text-center">
+                    {% if day.type != 'weekend' %}
+                    <a href="{% url 'hr:entry_create' employee.pk %}?date={{ day.date|date:'Y-m-d' }}"
+                       class="text-green-600 hover:underline text-xs">+ Eintrag</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="bg-gray-50 border-t-2 border-gray-200 font-semibold">
+            <tr>
+                <td colspan="3" class="px-3 py-2 text-gray-700">Gesamt</td>
+                <td class="px-3 py-2 text-right">{{ total_soll_minutes|hours_decimal }}</td>
+                <td class="px-3 py-2 text-right">{{ total_ist_minutes|hours_decimal }}</td>
+                <td class="px-3 py-2 text-right {% if total_balance_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if total_balance_minutes >= 0 %}+{% endif %}{{ total_balance_minutes|hours_decimal }}
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

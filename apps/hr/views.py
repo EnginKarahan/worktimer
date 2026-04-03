@@ -28,6 +28,7 @@ from .services import (
     AdjustmentService,
     TimeEntryHRService,
     SollIstCalculator,
+    TimesheetBuilder,
     VacationBalanceService,
 )
 from apps.accounts.models import WorkSchedule
@@ -58,18 +59,48 @@ def hr_dashboard(request):
         .order_by("start_time")
     )
 
-    calculator = OvertimeCalculator()
-    active_users = User.objects.filter(is_active=True).select_related("userprofile")
+    from apps.absences.services import calculate_vacation_entitlement, ApprovalService as AbsApprovalService
+
+    ot_calculator = OvertimeCalculator()
+    sollist = SollIstCalculator()
+    active_users = User.objects.filter(is_active=True).select_related("userprofile").order_by("last_name", "first_name")
+    clocked_in_ids = set(clocked_in.values_list("user_id", flat=True))
+    absent_ids = set(today_absences.values_list("user_id", flat=True))
+
     deficit_users = []
     high_overtime_users = []
+    employee_overview = []
+
+    year = today.year
     for u in active_users:
-        balance = calculator.get_balance_minutes(u)
+        settled = ot_calculator.get_balance_minutes(u)
+        current = sollist.calculate_monthly_hours(u, year, today.month)
+        balance = settled + current["balance_minutes"]
+        entitlement = calculate_vacation_entitlement(u, year)
+        vac_balance = AbsApprovalService()._get_vacation_balance(u, year=year)
+        vac_used = round(entitlement - vac_balance, 1)
+
         if balance < 0:
             deficit_users.append({"user": u, "balance_hours": round(balance / 60, 1)})
         elif balance > 40 * 60:
-            high_overtime_users.append(
-                {"user": u, "balance_hours": round(balance / 60, 1)}
-            )
+            high_overtime_users.append({"user": u, "balance_hours": round(balance / 60, 1)})
+
+        if u.id in clocked_in_ids:
+            status = "clocked_in"
+        elif u.id in absent_ids:
+            status = "absent"
+        else:
+            status = "none"
+
+        employee_overview.append({
+            "user": u,
+            "balance_minutes": balance,
+            "balance_hours": round(balance / 60, 1),
+            "vac_used": vac_used,
+            "vac_entitlement": entitlement,
+            "vac_remaining": round(vac_balance, 1),
+            "status": status,
+        })
 
     return render(
         request,
@@ -80,7 +111,9 @@ def hr_dashboard(request):
             "clocked_in": clocked_in,
             "deficit_users": deficit_users,
             "high_overtime_users": high_overtime_users,
+            "employee_overview": employee_overview,
             "today": today,
+            "year": year,
         },
     )
 
@@ -481,7 +514,10 @@ def employee_schedule(request, pk):
 def entry_create(request, pk):
     """Neuen Zeiteintrag für Mitarbeiter anlegen."""
     employee = get_object_or_404(User, pk=pk)
-    form = TimeEntryCreateForm(request.POST or None)
+    initial = {}
+    if request.method == "GET" and request.GET.get("date"):
+        initial["date"] = request.GET["date"]
+    form = TimeEntryCreateForm(request.POST or None, initial=initial)
 
     if request.method == "POST" and form.is_valid():
         service = TimeEntryHRService()
@@ -659,3 +695,45 @@ def employee_sollist_partial(request, pk):
             "absence_days": data["absence_days"],
         }
     )
+
+
+@hr_required
+def employee_timesheet(request, pk, year=None, month=None):
+    """Monatliche Tagesübersicht für einen Mitarbeiter (HR)."""
+    employee = get_object_or_404(User, pk=pk)
+    today = timezone.now().date()
+
+    if year is None:
+        year = today.year
+    if month is None:
+        month = today.month
+
+    # Prev / next month navigation
+    if month == 1:
+        prev_year, prev_month = year - 1, 12
+    else:
+        prev_year, prev_month = year, month - 1
+
+    if month == 12:
+        next_year, next_month = year + 1, 1
+    else:
+        next_year, next_month = year, month + 1
+
+    builder = TimesheetBuilder()
+    sheet = builder.build(employee, year, month)
+
+    return render(request, "hr/employee_timesheet.html", {
+        "employee": employee,
+        "year": year,
+        "month": month,
+        "month_name": datetime.datetime(year, month, 1).strftime("%B %Y"),
+        "days": sheet["days"],
+        "total_soll_minutes": sheet["total_soll_minutes"],
+        "total_ist_minutes": sheet["total_ist_minutes"],
+        "total_balance_minutes": sheet["total_balance_minutes"],
+        "prev_year": prev_year,
+        "prev_month": prev_month,
+        "next_year": next_year,
+        "next_month": next_month,
+        "today": today,
+    })

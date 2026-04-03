@@ -50,6 +50,14 @@ class AbsenceRequest(TimestampedModel):
     )
     approved_at = models.DateTimeField(null=True, blank=True)
     approval_comment = models.TextField(blank=True)
+    # Arbeitsunfähigkeitsbescheinigung (AU)
+    au_vorhanden = models.BooleanField(default=False, verbose_name="AU liegt vor")
+    au_eingereicht_am = models.DateField(null=True, blank=True, verbose_name="AU eingereicht am")
+    # HR-Änderungsprotokoll
+    type_changed_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="changed_absences"
+    )
+    type_change_reason = models.TextField(blank=True)
 
     class Meta:
         indexes = [models.Index(fields=["user", "status"])]

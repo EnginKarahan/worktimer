@@ -45,6 +45,7 @@ urlpatterns = [
         name="employee_absences",
     ),
     path("employees/<int:pk>/sick/", views.enter_sick_leave, name="enter_sick_leave"),
+    path("employees/<int:pk>/absences/<int:absence_pk>/change-type/", views.change_absence_type, name="change_absence_type"),
     path(
         "employees/<int:pk>/sollist/",
         views.employee_sollist_partial,

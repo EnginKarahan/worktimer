@@ -54,7 +54,8 @@
         <tbody class="divide-y divide-gray-100">
             {% for day in days %}
             <tr class="
-                {% if day.type == 'weekend' %}bg-gray-50 text-gray-400
+                {% if day.type == 'before_hire' %}bg-gray-100 opacity-40
+                {% elif day.type == 'weekend' %}bg-gray-50 text-gray-400
                 {% elif day.type == 'holiday' %}bg-blue-50
                 {% elif day.type == 'vacation' %}bg-green-50
                 {% elif day.type == 'sick' %}bg-orange-50

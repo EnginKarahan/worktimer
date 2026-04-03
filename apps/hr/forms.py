@@ -81,11 +81,25 @@ class EmployeeProfileForm(forms.ModelForm):
 class SickLeaveForm(forms.Form):
     start_date = forms.DateField(
         label="Von",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     end_date = forms.DateField(
         label="Bis",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    au_vorhanden = forms.BooleanField(
+        label="AU-Bescheinigung liegt vor",
+        required=False,
+    )
+    au_eingereicht_am = forms.DateField(
+        label="AU eingereicht am",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    notes = forms.CharField(
+        label="Hinweis (intern)",
+        widget=forms.Textarea(attrs={"rows": 2}),
+        required=False,
     )
 
     def clean(self):
@@ -95,6 +109,24 @@ class SickLeaveForm(forms.Form):
         if start and end and end < start:
             raise forms.ValidationError("Enddatum muss nach Startdatum liegen.")
         return cleaned
+
+
+class AbsenceTypeChangeForm(forms.Form):
+    from apps.absences.models import LeaveType
+    leave_type = forms.ModelChoiceField(
+        queryset=None,
+        label="Neuer Abwesenheitstyp",
+    )
+    reason = forms.CharField(
+        label="Begründung der Änderung",
+        widget=forms.Textarea(attrs={"rows": 2}),
+        required=True,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.absences.models import LeaveType
+        self.fields["leave_type"].queryset = LeaveType.objects.all()
 
 
 class AbsenceRejectForm(forms.Form):

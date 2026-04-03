@@ -21,6 +21,7 @@ from .forms import (
     EmployeeProfileForm,
     SickLeaveForm,
     AbsenceRejectForm,
+    AbsenceTypeChangeForm,
 )
 from .forms import WorkScheduleForm, TimeEntryCreateForm, TimeEntryDeleteForm
 from .forms import VacationAdjustmentForm, OvertimeAdjustmentForm
@@ -363,12 +364,18 @@ def enter_sick_leave(request, pk):
     if request.method == "POST" and form.is_valid():
         service = ApprovalService()
         try:
-            service.enter_sick_leave_for_employee(
+            absence = service.enter_sick_leave_for_employee(
                 hr_user=request.user,
                 employee=employee,
                 start_date=form.cleaned_data["start_date"],
                 end_date=form.cleaned_data["end_date"],
             )
+            # Save AU fields
+            absence.au_vorhanden = form.cleaned_data.get("au_vorhanden", False)
+            absence.au_eingereicht_am = form.cleaned_data.get("au_eingereicht_am")
+            if form.cleaned_data.get("notes"):
+                absence.approval_comment = form.cleaned_data["notes"]
+            absence.save(update_fields=["au_vorhanden", "au_eingereicht_am", "approval_comment"])
             messages.success(request, "Krankmeldung wurde eingetragen.")
             return redirect("hr:employee_absences", pk=pk)
         except Exception as e:
@@ -381,6 +388,42 @@ def enter_sick_leave(request, pk):
             "form": form,
         },
     )
+
+
+@hr_required
+def change_absence_type(request, pk, absence_pk):
+    """Abwesenheitstyp einer genehmigten Abwesenheit ändern."""
+    from apps.absences.models import AbsenceRequest
+    employee = get_object_or_404(User, pk=pk)
+    absence = get_object_or_404(AbsenceRequest, pk=absence_pk, user=employee)
+    form = AbsenceTypeChangeForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        old_type = absence.leave_type
+        new_type = form.cleaned_data["leave_type"]
+        reason = form.cleaned_data["reason"]
+
+        absence.leave_type = new_type
+        absence.type_changed_by = request.user
+        absence.type_change_reason = reason
+        absence.save(update_fields=["leave_type", "type_changed_by", "type_change_reason"])
+
+        AuditLog.log(
+            request.user,
+            "absence_type_changed",
+            absence,
+            old={"leave_type": str(old_type)},
+            new={"leave_type": str(new_type), "reason": reason},
+            request=request,
+        )
+        messages.success(request, f"Abwesenheitstyp geändert: {old_type} → {new_type}")
+        return redirect("hr:employee_absences", pk=pk)
+
+    return render(request, "hr/change_absence_type.html", {
+        "employee": employee,
+        "absence": absence,
+        "form": form,
+    })
 
 
 @hr_required

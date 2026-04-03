@@ -230,9 +230,9 @@ class SollIstCalculator:
         from apps.timesessions.models import TimeEntry
         from apps.absences.models import AbsenceRequest
 
-        federal_state = getattr(
-            getattr(user, "userprofile", None), "federal_state", "BY"
-        )
+        profile = getattr(user, "userprofile", None)
+        federal_state = getattr(profile, "federal_state", "BY")
+        hire_date = getattr(profile, "hire_date", None)
 
         soll_minutes = 0
         holiday_days = 0
@@ -247,11 +247,26 @@ class SollIstCalculator:
                 break
             last_day += 1
 
+        # If entire month is before hire_date → no SOLL at all
+        if hire_date and date(year, month, last_day) < hire_date:
+            return {
+                "soll_minutes": 0,
+                "ist_minutes": 0,
+                "holiday_days": 0,
+                "absence_days": 0,
+                "balance_minutes": 0,
+            }
+
         # For the current month cap Soll at today; past months use full month
         if year == today.year and month == today.month:
             soll_last_day = today.day
         else:
             soll_last_day = last_day
+
+        # Don't count days before hire_date
+        soll_start_day = 1
+        if hire_date and hire_date.year == year and hire_date.month == month:
+            soll_start_day = hire_date.day
 
         absence_dates = set()
         if AbsenceRequest.objects.filter(
@@ -292,7 +307,7 @@ class SollIstCalculator:
             .order_by("effective_from")
         )
 
-        for day in range(1, soll_last_day + 1):
+        for day in range(soll_start_day, soll_last_day + 1):
             current_date = date(year, month, day)
             weekday = current_date.weekday()
 
@@ -410,7 +425,9 @@ class TimesheetBuilder:
         from apps.timesessions.models import TimeEntry
         from apps.accounts.models import WorkSchedule
 
-        federal_state = getattr(getattr(user, "userprofile", None), "federal_state", "BY")
+        profile = getattr(user, "userprofile", None)
+        federal_state = getattr(profile, "federal_state", "BY")
+        hire_date = getattr(profile, "hire_date", None)
 
         # Last day of month
         last_day = 28
@@ -462,6 +479,21 @@ class TimesheetBuilder:
         total_ist = 0
 
         for day_num in range(1, last_day + 1):
+            # Skip days before hire_date
+            if hire_date and date(year, month, day_num) < hire_date:
+                d = date(year, month, day_num)
+                days.append({
+                    "date": d,
+                    "weekday_name": WEEKDAY_NAMES[d.weekday()],
+                    "type": "before_hire",
+                    "holiday_name": None,
+                    "absence": None,
+                    "entries": [],
+                    "soll_minutes": 0,
+                    "ist_minutes": 0,
+                    "balance_minutes": 0,
+                })
+                continue
             d = date(year, month, day_num)
             weekday = d.weekday()
             is_weekend = weekday >= 5

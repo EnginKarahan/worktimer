@@ -7,35 +7,54 @@
         <a href="{% url 'hr:employee_detail' employee.pk %}" class="text-blue-600 hover:underline text-sm">← {{ employee.get_full_name }}</a>
         <h1 class="text-2xl font-bold text-gray-900 mt-1">Abwesenheiten: {{ employee.get_full_name|default:employee.username }}</h1>
     </div>
-    <a href="{% url 'hr:enter_sick_leave' employee.pk %}" class="bg-orange-100 text-orange-700 px-4 py-2 rounded text-sm hover:bg-orange-200">Krankmeldung erfassen</a>
+    <a href="{% url 'hr:enter_sick_leave' employee.pk %}" class="bg-orange-100 text-orange-700 px-4 py-2 rounded text-sm hover:bg-orange-200">+ Krankmeldung erfassen</a>
 </div>
 
 <div class="bg-white shadow rounded-lg overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-50">
             <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Typ</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Von</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bis</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tage</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AU</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktion</th>
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             {% for absence in absences %}
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-2 text-sm font-medium">{{ absence.leave_type.name }}</td>
-                <td class="px-4 py-2 text-sm">{{ absence.start_date|date:"d.m.Y" }}</td>
-                <td class="px-4 py-2 text-sm">{{ absence.end_date|date:"d.m.Y" }}</td>
-                <td class="px-4 py-2 text-sm">{{ absence.duration_days }}</td>
-                <td class="px-4 py-2 text-sm">
+                <td class="px-4 py-2 font-medium">
+                    {{ absence.leave_type.name }}
+                    {% if absence.type_change_reason %}
+                        <span class="ml-1 text-xs text-gray-400" title="Geändert: {{ absence.type_change_reason }}">✎</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2">{{ absence.start_date|date:"d.m.Y" }}</td>
+                <td class="px-4 py-2">{{ absence.end_date|date:"d.m.Y" }}</td>
+                <td class="px-4 py-2">{{ absence.duration_days }}</td>
+                <td class="px-4 py-2">
+                    {% if absence.leave_type.code == "SICK" %}
+                        {% if absence.au_vorhanden %}
+                            <span class="text-green-600 text-xs">✓ liegt vor{% if absence.au_eingereicht_am %} ({{ absence.au_eingereicht_am|date:"d.m." }}){% endif %}</span>
+                        {% else %}
+                            <span class="text-orange-500 text-xs">ausstehend</span>
+                        {% endif %}
+                    {% else %}–{% endif %}
+                </td>
+                <td class="px-4 py-2">
                     <span class="px-2 py-0.5 rounded text-xs {% if absence.status == 'APPROVED' %}bg-green-100 text-green-700{% elif absence.status == 'REJECTED' %}bg-red-100 text-red-700{% elif absence.status == 'PENDING' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-600{% endif %}">
                         {{ absence.get_status_display }}
                     </span>
                 </td>
+                <td class="px-4 py-2">
+                    <a href="{% url 'hr:change_absence_type' employee.pk absence.pk %}" class="text-blue-600 hover:underline text-xs">Typ ändern</a>
+                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Keine Abwesenheiten.</td></tr>
+            <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">Keine Abwesenheiten.</td></tr>
             {% endfor %}
         </tbody>
     </table>

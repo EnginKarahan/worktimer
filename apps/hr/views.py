@@ -396,8 +396,7 @@ def download_employee_pdf(request, user_pk):
     )
     filename = f"arbeitszeitnachweis_{year}_{month:02d}_{employee.username}.pdf"
     response = HttpResponse(pdf, content_type="application/pdf")
-    cd = "attachment; filename= + filename + "
-    response["Content-Disposition"] = cd
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 
@@ -423,8 +422,7 @@ def download_employee_excel(request, user_pk):
         data,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-    cd = "attachment; filename= + filename + "
-    response["Content-Disposition"] = cd
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 

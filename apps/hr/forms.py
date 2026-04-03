@@ -47,7 +47,7 @@ class EmployeeProfileForm(forms.ModelForm):
             "max_carry_over_days",
         ]
         widgets = {
-            "hire_date": forms.DateInput(attrs={"type": "date"}),
+            "hire_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
 
     def __init__(self, *args, **kwargs):

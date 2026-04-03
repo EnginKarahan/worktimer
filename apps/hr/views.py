@@ -140,10 +140,13 @@ def employee_create(request):
 @hr_required
 def employee_detail(request, pk):
     employee = get_object_or_404(User, pk=pk)
-    calculator = OvertimeCalculator()
-    balance = calculator.get_balance_minutes(employee)
     today = timezone.now().date()
     year = today.year
+    # Live balance: settled transactions + unsettled current month
+    calculator = OvertimeCalculator()
+    settled_balance = calculator.get_balance_minutes(employee)
+    current_month_data = SollIstCalculator().calculate_monthly_hours(employee, year, today.month)
+    balance = settled_balance + current_month_data["balance_minutes"]
     current_absence = AbsenceRequest.objects.filter(
         user=employee,
         status="APPROVED",
@@ -180,10 +183,12 @@ def employee_detail(request, pk):
 def employee_edit(request, pk):
     employee = get_object_or_404(User, pk=pk)
     profile = employee.userprofile
+    schedule = (
+        WorkSchedule.objects.filter(user=employee).order_by("-effective_from").first()
+    )
     old_data = {
         f: getattr(profile, f)
         for f in [
-            "role",
             "employment_type",
             "weekly_work_hours",
             "annual_leave_days",
@@ -195,17 +200,20 @@ def employee_edit(request, pk):
     }
     user_form = EmployeeUserForm(request.POST or None, instance=employee)
     profile_form = EmployeeProfileForm(request.POST or None, instance=profile)
+    schedule_form = WorkScheduleForm(request.POST or None, instance=schedule)
     if request.method == "POST":
-        if user_form.is_valid() and profile_form.is_valid():
+        if user_form.is_valid() and profile_form.is_valid() and schedule_form.is_valid():
             user_form.save()
             profile_form.save()
-            new_data = {f: str(getattr(profile, f)) for f in old_data}
+            saved_schedule = schedule_form.save(commit=False)
+            saved_schedule.user = employee
+            saved_schedule.save()
             AuditLog.log(
                 request.user,
                 "employee_updated",
                 employee,
                 old={k: str(v) for k, v in old_data.items()},
-                new=new_data,
+                new={f: str(getattr(profile, f)) for f in old_data},
                 request=request,
             )
             messages.success(request, "Profil aktualisiert.")
@@ -216,6 +224,7 @@ def employee_edit(request, pk):
         {
             "user_form": user_form,
             "profile_form": profile_form,
+            "schedule_form": schedule_form,
             "employee": employee,
             "title": f"Mitarbeiter bearbeiten: {employee.get_full_name()}",
         },

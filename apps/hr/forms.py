@@ -46,6 +46,16 @@ class EmployeeProfileForm(forms.ModelForm):
             "leave_carry_over",
             "max_carry_over_days",
         ]
+        labels = {
+            "employment_type": "Beschäftigungsart",
+            "weekly_work_hours": "Wochenstunden",
+            "annual_leave_days": "Urlaubstage pro Jahr",
+            "hire_date": "Einstellungsdatum",
+            "federal_state": "Bundesland",
+            "manager": "Vorgesetzte/r",
+            "leave_carry_over": "Urlaubsübertrag erlaubt",
+            "max_carry_over_days": "Max. Übertragstage",
+        }
         widgets = {
             "hire_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
@@ -109,9 +119,13 @@ class WorkScheduleForm(forms.ModelForm):
             "effective_from",
             "effective_to",
         ]
+        labels = {
+            "effective_from": "Gültig ab",
+            "effective_to": "Gültig bis (optional)",
+        }
         widgets = {
-            "effective_from": forms.DateInput(attrs={"type": "date"}),
-            "effective_to": forms.DateInput(attrs={"type": "date"}),
+            "effective_from": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "effective_to": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
         }
 
     def __init__(self, *args, **kwargs):
@@ -140,17 +154,25 @@ class WorkScheduleForm(forms.ModelForm):
 
     @property
     def weekly_hours(self):
-        if not hasattr(self, "cleaned_data") or not self.cleaned_data:
-            return 40.0
-        total = sum(
-            [
+        # Use cleaned_data after validation, fall back to instance values
+        if hasattr(self, "cleaned_data") and self.cleaned_data:
+            total = sum([
                 (self.cleaned_data.get("monday_minutes", 0) or 0),
                 (self.cleaned_data.get("tuesday_minutes", 0) or 0),
                 (self.cleaned_data.get("wednesday_minutes", 0) or 0),
                 (self.cleaned_data.get("thursday_minutes", 0) or 0),
                 (self.cleaned_data.get("friday_minutes", 0) or 0),
-            ]
-        )
+            ])
+        elif self.instance and self.instance.pk:
+            total = (
+                (self.instance.monday_minutes or 0) +
+                (self.instance.tuesday_minutes or 0) +
+                (self.instance.wednesday_minutes or 0) +
+                (self.instance.thursday_minutes or 0) +
+                (self.instance.friday_minutes or 0)
+            )
+        else:
+            return 40.0
         return round(total / 60, 2)
 
 

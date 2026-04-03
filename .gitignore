@@ -8,3 +8,6 @@ db.sqlite3
 dist/
 *.egg-info/
 .DS_Store
+*.log
+local_settings.py
+

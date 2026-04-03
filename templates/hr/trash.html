@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load time_filters %}
+{% block title %}Papierkorb – Gelöschte Zeiteinträge{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'hr:dashboard' %}" class="text-blue-600 hover:underline text-sm">← HR-Dashboard</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Papierkorb</h1>
+    <p class="text-gray-500">Gelöschte Zeiteinträge</p>
+</div>
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mitarbeiter</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Zeit</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Netto</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gelöscht von</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grund</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for entry in deleted_entries %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-sm">{{ entry.original_user.get_full_name }}</td>
+                <td class="px-4 py-2 text-sm">{{ entry.original_date|date:"d.m.Y" }}</td>
+                <td class="px-4 py-2 text-sm">{{ entry.original_start_time|time:"H:i" }} – {% if entry.original_end_time %}{{ entry.original_end_time|time:"H:i" }}{% else %}–{% endif %}</td>
+                <td class="px-4 py-2 text-sm">{{ entry.original_net_minutes|hours_decimal }} h ({{ entry.original_net_minutes|hours_time }})</td>
+                <td class="px-4 py-2 text-sm">{{ entry.deleted_by.get_full_name }}</td>
+                <td class="px-4 py-2 text-sm text-gray-500">{{ entry.deletion_reason|truncatechars:50 }}</td>
+                <td class="px-4 py-2 text-sm">
+                    <form method="post" action="{% url 'hr:restore_entry' entry.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-green-600 hover:underline">Wiederherstellen</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="px-4 py-6 text-center text-gray-500">Keine gelöschten Einträge.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

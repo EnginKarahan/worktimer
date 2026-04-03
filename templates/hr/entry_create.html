@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Neuer Zeiteintrag – {{ employee.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'hr:employee_entries' employee.pk %}" class="text-blue-600 hover:underline text-sm">← Zeiteinträge</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Neuer Zeiteintrag: {{ employee.get_full_name }}</h1>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6 max-w-2xl">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<p class="text-xs text-gray-500">{{ field.help_text }}</p>{% endif %}
+            {% if field.errors %}<p class="text-red-600 text-xs">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="flex space-x-3 mt-4">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Erstellen</button>
+            <a href="{% url 'hr:employee_entries' employee.pk %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

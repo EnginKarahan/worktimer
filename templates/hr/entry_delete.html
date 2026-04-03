@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Zeiteintrag löschen – {{ employee.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'hr:employee_entries' employee.pk %}" class="text-blue-600 hover:underline text-sm">← Zeiteinträge</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Zeiteintrag löschen</h1>
+</div>
+
+<div class="bg-white shadow rounded-lg p-6 max-w-2xl">
+    <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
+        <p class="text-red-800 font-medium">Möchten Sie diesen Eintrag wirklich löschen?</p>
+        <div class="mt-2 text-sm text-gray-600">
+            <p>Datum: {{ entry.date|date:"d.m.Y" }}</p>
+            <p>Zeit: {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i"|default:"–" }}</p>
+            <p>Netto: {{ entry.net_minutes }} min</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<p class="text-red-600 text-xs">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="flex space-x-3 mt-4">
+            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Löschen</button>
+            <a href="{% url 'hr:employee_entries' employee.pk %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

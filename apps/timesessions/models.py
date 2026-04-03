@@ -14,7 +14,9 @@ STATUS_CHOICES = [
 
 
 class TimeEntry(TimestampedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="time_entries")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="time_entries"
+    )
     date = models.DateField(db_index=True)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
@@ -28,7 +30,11 @@ class TimeEntry(TimestampedModel):
     violations_json = models.JSONField(null=True, blank=True)
     is_manual_correction = models.BooleanField(default=False)
     corrected_by = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="corrections_made"
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="corrections_made",
     )
     correction_reason = models.TextField(blank=True)
     original_start_time = models.DateTimeField(null=True, blank=True)
@@ -53,6 +59,7 @@ class TimeEntry(TimestampedModel):
     def gross_minutes(self) -> int:
         if not self.end_time:
             from django.utils import timezone
+
             end = timezone.now()
         else:
             end = self.end_time
@@ -61,3 +68,30 @@ class TimeEntry(TimestampedModel):
     @property
     def net_minutes(self) -> int:
         return max(0, self.gross_minutes - self.break_minutes)
+
+
+class DeletedTimeEntry(TimestampedModel):
+    original_entry = models.BigIntegerField()
+    original_user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="deleted_entries"
+    )
+    original_date = models.DateField()
+    original_start_time = models.DateTimeField()
+    original_end_time = models.DateTimeField(null=True, blank=True)
+    original_break_minutes = models.IntegerField(default=0)
+    original_net_minutes = models.IntegerField(default=0)
+    original_project = models.ForeignKey(
+        "projects.Project", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    deleted_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="deletions_made"
+    )
+    deletion_reason = models.TextField()
+
+    class Meta:
+        verbose_name = "Gelöschter Zeiteintrag"
+        verbose_name_plural = "Gelöschte Zeiteinträge"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Deleted: {self.original_user} – {self.original_date}"

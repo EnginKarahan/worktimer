@@ -302,31 +302,16 @@ class SollIstCalculator:
 
         total_excluded_dates = exclusion_dates | holiday_dates
 
+        entries_qs = TimeEntry.objects.filter(
+            user=user,
+            date__year=year,
+            date__month=month,
+            status__in=["COMPLETED", "AUTO_CLOSED", "MANUAL"],
+            end_time__isnull=False,
+        )
         if total_excluded_dates:
-            excluded_dates_list = list(total_excluded_dates)
-            ist_minutes = (
-                TimeEntry.objects.filter(
-                    user=user,
-                    date__year=year,
-                    date__month=month,
-                    status__in=["COMPLETED", "AUTO_CLOSED", "MANUAL"],
-                    end_time__isnull=False,
-                )
-                .exclude(date__in=excluded_dates_list)
-                .aggregate(total=models.Sum("net_minutes"))["total"]
-                or 0
-            )
-        else:
-            ist_minutes = (
-                TimeEntry.objects.filter(
-                    user=user,
-                    date__year=year,
-                    date__month=month,
-                    status__in=["COMPLETED", "AUTO_CLOSED", "MANUAL"],
-                    end_time__isnull=False,
-                ).aggregate(total=models.Sum("net_minutes"))["total"]
-                or 0
-            )
+            entries_qs = entries_qs.exclude(date__in=list(total_excluded_dates))
+        ist_minutes = sum(e.net_minutes for e in entries_qs)
 
         return {
             "soll_minutes": soll_minutes,

@@ -1,15 +1,14 @@
 services:
   db:
-    image: mariadb:10.11
+    image: postgres:16
     environment:
-      MARIADB_ROOT_PASSWORD: rootpw
-      MARIADB_DATABASE: arbeitszeit
-      MARIADB_USER: arbeitszeit
-      MARIADB_PASSWORD: arbeitszeit_dev
+      POSTGRES_DB: arbeitszeit
+      POSTGRES_USER: arbeitszeit
+      POSTGRES_PASSWORD: arbeitszeit_dev
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpw"]
+      test: ["CMD", "pg_isready", "-U", "arbeitszeit", "-d", "arbeitszeit"]
       interval: 10s
       timeout: 5s
       retries: 5

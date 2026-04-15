@@ -114,7 +114,7 @@
                     {% if day.ist_minutes %}{{ day.ist_minutes|hours_decimal }}{% else %}–{% endif %}
                 </td>
                 <td class="px-3 py-2 text-right">
-                    {% if day.type == 'work' %}
+                    {% if day.type == 'work' or day.entries %}
                         <span class="{% if day.balance_minutes > 0 %}text-green-600{% elif day.balance_minutes < 0 %}text-red-600{% else %}text-gray-500{% endif %}">
                             {% if day.balance_minutes > 0 %}+{% endif %}{{ day.balance_minutes|hours_decimal }}
                         </span>

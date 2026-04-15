@@ -330,15 +330,6 @@ class SollIstCalculator:
             else:
                 soll_minutes += 480
 
-        exclusion_dates = absence_dates.copy()
-        holiday_dates = set()
-        for day in range(1, last_day + 1):
-            current_date = date(year, month, day)
-            if not is_working_day(current_date, federal_state):
-                holiday_dates.add(current_date)
-
-        total_excluded_dates = exclusion_dates | holiday_dates
-
         entries_qs = TimeEntry.objects.filter(
             user=user,
             date__year=year,
@@ -346,8 +337,6 @@ class SollIstCalculator:
             status__in=["COMPLETED", "AUTO_CLOSED", "MANUAL"],
             end_time__isnull=False,
         )
-        if total_excluded_dates:
-            entries_qs = entries_qs.exclude(date__in=list(total_excluded_dates))
         ist_minutes = sum(e.net_minutes for e in entries_qs)
 
         return {

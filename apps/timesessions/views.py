@@ -107,6 +107,55 @@ def entries_list(request):
 
 
 @login_required
+def add_entry(request):
+    from django.utils import timezone
+    import datetime
+
+    service = CorrectionService()
+    max_days = service.get_max_correction_days(request.user)
+    earliest = None
+    if max_days is not None:
+        earliest = (timezone.now().date() - datetime.timedelta(days=max_days)).isoformat()
+
+    if request.method == "POST":
+        try:
+            new_start_str = request.POST.get("start_time")
+            new_end_str = request.POST.get("end_time")
+            reason = request.POST.get("reason", "").strip()
+            break_minutes = int(request.POST.get("break_minutes", 0) or 0)
+
+            if not reason:
+                messages.error(request, "Bitte geben Sie eine Begründung an.")
+                return render(request, "timesessions/add_entry.html", {
+                    "max_days": max_days, "earliest_date": earliest,
+                })
+
+            tz = timezone.get_current_timezone()
+            new_start = timezone.make_aware(
+                datetime.datetime.fromisoformat(new_start_str), tz
+            )
+            new_end = timezone.make_aware(
+                datetime.datetime.fromisoformat(new_end_str), tz
+            )
+            if new_end <= new_start:
+                messages.error(request, "Endzeit muss nach der Startzeit liegen.")
+                return render(request, "timesessions/add_entry.html", {
+                    "max_days": max_days, "earliest_date": earliest,
+                })
+
+            service.create_manual_entry(request.user, new_start, new_end, reason, break_minutes)
+            messages.success(request, "Zeiteintrag wurde eingetragen.")
+            return redirect("timesessions:entries")
+        except CorrectionWindowError as e:
+            messages.error(request, str(e))
+
+    return render(request, "timesessions/add_entry.html", {
+        "max_days": max_days,
+        "earliest_date": earliest,
+    })
+
+
+@login_required
 def correct_entry(request, pk):
     from django.shortcuts import get_object_or_404
     from django.utils import timezone

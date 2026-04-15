@@ -165,3 +165,47 @@ class CorrectionService:
             )
 
         return entry
+
+    def create_manual_entry(self, actor, new_start, new_end, reason: str, break_minutes: int = 0) -> TimeEntry:
+        from django.utils.timezone import now as tz_now
+
+        max_days = self.get_max_correction_days(actor)
+        entry_date = new_start.date()
+        if max_days is not None:
+            earliest = (tz_now().date() - __import__("datetime").timedelta(days=max_days))
+            if entry_date < earliest:
+                raise CorrectionWindowError(
+                    f"Nachträgliches Eintragen nur bis {max_days} Tage zurück erlaubt."
+                )
+
+        gross = int((new_end - new_start).total_seconds() / 60)
+        required = calculate_required_break(gross)
+        final_break = max(break_minutes, required)
+
+        violations = collect_all_violations(gross, final_break)
+
+        with transaction.atomic():
+            entry = TimeEntry.objects.create(
+                user=actor,
+                date=entry_date,
+                start_time=new_start,
+                end_time=new_end,
+                break_minutes=final_break,
+                required_break_minutes=required,
+                status="MANUAL",
+                is_manual_correction=True,
+                corrected_by=actor,
+                correction_reason=reason,
+                violations_json=[v.as_dict() for v in violations],
+            )
+            AuditLog.log(
+                actor,
+                "time_entry_manually_added",
+                entry,
+                new={"start_time": str(new_start), "end_time": str(new_end), "reason": reason},
+            )
+
+        from apps.overtime.tasks import calculate_daily_overtime
+        calculate_daily_overtime.delay(actor.id, str(entry_date))
+
+        return entry

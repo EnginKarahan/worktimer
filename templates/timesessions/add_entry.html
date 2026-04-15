@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Zeiteintrag nachtragen{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'timesessions:entries' %}" class="text-blue-600 hover:underline text-sm">← Meine Zeiteinträge</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Zeiteintrag nachtragen</h1>
+</div>
+
+<div class="max-w-lg bg-white rounded-lg shadow p-6">
+    {% if max_days %}
+    <div class="mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-sm text-orange-700">
+        Sie können Einträge bis {{ max_days }} Tage zurück nachtragen (frühestens {{ earliest_date }}).
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Startzeit <span class="text-red-500">*</span></label>
+            <input type="datetime-local" name="start_time"
+                   {% if earliest_date %}min="{{ earliest_date }}T00:00"{% endif %}
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Endzeit <span class="text-red-500">*</span></label>
+            <input type="datetime-local" name="end_time"
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pause (Minuten)</label>
+            <input type="number" name="break_minutes" value="0" min="0"
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+            <p class="text-xs text-gray-400 mt-1">Pflichtpausen nach §4 ArbZG werden automatisch ergänzt, falls nötig.</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Begründung <span class="text-red-500">*</span></label>
+            <textarea name="reason" rows="3" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" required
+                      placeholder="z.B. Vergessen einzustempeln am ..."></textarea>
+        </div>
+        <div class="flex space-x-3">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">Eintrag speichern</button>
+            <a href="{% url 'timesessions:entries' %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 text-sm">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

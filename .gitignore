@@ -10,4 +10,5 @@ dist/
 .DS_Store
 *.log
 local_settings.py
+STATUS.md
 

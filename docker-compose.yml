@@ -1,5 +1,4 @@
-# Ergänzung zu /opt/infrastruktur/docker-compose.yml auf dem Server
-# Diese Datei ist für die lokale Referenz — auf dem Server manuell einfügen
+# Production reference — merge relevant services into your server's docker-compose.yml
 
 services:
   arbeitszeit:

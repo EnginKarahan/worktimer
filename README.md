@@ -39,7 +39,7 @@
 
 ---
 
-A Django-based time tracking and absence management system built for the Alhambra team as a self-hosted replacement for Kimai. It runs on a Hetzner CPX31 server (Ubuntu 24.04) behind Nginx and is embedded as an iFrame in the team's Nextcloud instance.
+A Django-based time tracking and absence management system for self-hosted deployment, built as a replacement for Kimai. Runs behind Nginx and can be embedded as an iFrame in a Nextcloud instance.
 
 ---
 
@@ -124,7 +124,7 @@ arbeitszeit-app/
 ├── static/
 ├── Dockerfile
 ├── docker-compose.dev.yml     # Local development stack
-├── docker-compose.yml         # Production reference (merged into /opt/infrastruktur)
+├── docker-compose.yml         # Production reference (merge into your server compose)
 └── .env.example
 ```
 
@@ -179,37 +179,32 @@ The `web` service mounts the project directory as a volume so code changes are r
 
 ## Deployment on Server
 
-**Server:** `admin@alhambra.cloud`
-**Production directory:** `/opt/infrastruktur/`
-**Exposed port:** `8040` (mapped to Gunicorn's 8000 internally)
+**Exposed port:** `8000` internally (map to any host port you prefer, e.g. `8040`)
 
-The production stack is part of a shared `docker-compose.yml` at `/opt/infrastruktur/`. The `docker-compose.yml` in this repository is a reference snippet to be merged into that file.
+The `docker-compose.yml` in this repository is a reference snippet. Merge it into your own infrastructure compose file.
 
 ### Step-by-Step
 
 ```bash
 # 1. SSH into the server
-ssh admin@alhambra.cloud
+ssh admin@your-server
 
-# 2. Navigate to the infrastructure directory
-cd /opt/infrastruktur
+# 2. Navigate to your infrastructure directory and pull the latest code
+cd /path/to/arbeitszeit
+git pull origin main
 
-# 3. Pull latest application code
-cd arbeitszeit
-git pull origin master
-
-# 4. Rebuild and restart only the Arbeitszeit containers
+# 3. Rebuild and restart only the Arbeitszeit containers
 docker compose build arbeitszeit arbeitszeit_celery arbeitszeit_celery_beat
 docker compose up -d arbeitszeit arbeitszeit_celery arbeitszeit_celery_beat
 
-# 5. Run migrations
+# 4. Run migrations
 docker compose exec arbeitszeit python manage.py migrate
 
-# 6. Collect static files (also runs during image build, but safe to repeat)
+# 5. Collect static files (also runs during image build, but safe to repeat)
 docker compose exec arbeitszeit python manage.py collectstatic --noinput
 
-# 7. Verify health endpoint
-curl http://localhost:8040/health/
+# 6. Verify health endpoint
+curl http://localhost:<port>/health/
 # Expected: {"status": "ok"}
 ```
 
@@ -217,17 +212,15 @@ curl http://localhost:8040/health/
 
 | Container | Role |
 |---|---|
-| `arbeitszeit` | Gunicorn — 3 workers, port 8040 |
+| `arbeitszeit` | Gunicorn — 3 workers |
 | `arbeitszeit_celery` | Celery worker — concurrency 2 |
 | `arbeitszeit_celery_beat` | Celery Beat (database scheduler) |
-
-Watchtower auto-updates are disabled (`com.centurylinklabs.watchtower.enable=false`) — deployments are always manual.
 
 Static and media files are bind-mounted from the host:
 
 ```
-/opt/infrastruktur/data/arbeitszeit/static  →  /app/static
-/opt/infrastruktur/data/arbeitszeit/media   →  /app/media
+/path/to/data/static  →  /app/static
+/path/to/data/media   →  /app/media
 ```
 
 ---
@@ -240,7 +233,7 @@ Copy `.env.example` to `.env` and fill in all values before starting any contain
 |---|---|---|
 | `DJANGO_SETTINGS_MODULE` | yes | `config.settings.development` or `config.settings.production` |
 | `DJANGO_SECRET_KEY` | yes | Long random string — generate with `python -c "import secrets; print(secrets.token_hex(50))"` |
-| `DJANGO_ALLOWED_HOSTS` | yes (prod) | Comma-separated hostnames, e.g. `alhambra.cloud,localhost` |
+| `DJANGO_ALLOWED_HOSTS` | yes (prod) | Comma-separated hostnames, e.g. `your-domain.com,localhost` |
 | `DB_HOST` | yes | Database hostname (Docker service name or IP) |
 | `DB_NAME` | yes | Database name (default: `arbeitszeit`) |
 | `DB_USER` | yes | Database user |
@@ -249,9 +242,9 @@ Copy `.env.example` to `.env` and fill in all values before starting any contain
 | `CELERY_BROKER_URL` | yes | Redis URL for Celery broker, e.g. `redis://redis:6379/2` |
 | `OIDC_CLIENT_ID` | prod | Client ID registered in Nextcloud OAuth2 |
 | `OIDC_CLIENT_SECRET` | prod | Client secret from Nextcloud |
-| `OIDC_SERVER_URL` | prod | Nextcloud base URL, e.g. `https://cloud.alhambra-gesellschaft.de` |
+| `OIDC_SERVER_URL` | prod | Nextcloud base URL, e.g. `https://your-nextcloud.example.com` |
 | `NEXTCLOUD_BASE_URL` | prod | Same as `OIDC_SERVER_URL` |
-| `COMPANY_NAME` | no | Shown in reports (default: `Alhambra`) |
+| `COMPANY_NAME` | no | Shown in reports (default: `MyCompany`) |
 | `FEDERAL_STATE` | no | Two-letter state code for holidays (default: `BY` = Bavaria) |
 | `EMAIL_HOST` | no | SMTP host (default: `localhost`) |
 | `EMAIL_PORT` | no | SMTP port (default: `25`) |
@@ -347,7 +340,7 @@ The application is embedded in Nextcloud via an iFrame. To allow cross-origin fr
 
 - `X_FRAME_OPTIONS` is set to `""` (empty string — Django does not emit the header)
 - `SECURE_FRAME_DENY = False`
-- `CSRF_TRUSTED_ORIGINS` includes `https://cloud.alhambra-gesellschaft.de`
+- `CSRF_TRUSTED_ORIGINS` includes `https://your-nextcloud.example.com`
 - `SESSION_COOKIE_SAMESITE = "Lax"` — allows the cookie to be sent on top-level navigations from Nextcloud
 
 SSL termination is handled by Nginx on the host; `SECURE_SSL_REDIRECT = False` and `SECURE_PROXY_SSL_HEADER` is set to trust the `X-Forwarded-Proto` header.
@@ -370,7 +363,7 @@ Recurring financial/accounting tasks (`settle_monthly_overtime`, `year_end_overt
    ```
    OIDC_CLIENT_ID=<client-id>
    OIDC_CLIENT_SECRET=<client-secret>
-   OIDC_SERVER_URL=https://cloud.alhambra-gesellschaft.de
+   OIDC_SERVER_URL=https://your-nextcloud.example.com
    ```
 
 3. **In Django Admin** — ensure a `Site` record exists for your domain under *Sites*.
@@ -386,7 +379,7 @@ Use the **Nextcloud "External Sites" app** or a custom dashboard widget:
 1. Install the *External Sites* app from the Nextcloud app store.
 2. Add a new site:
    - **Name:** Arbeitszeit
-   - **URL:** `https://alhambra.cloud:8040/` (or the domain if behind a reverse proxy without port)
+   - **URL:** `https://your-domain.com/` (or with port if not behind a reverse proxy)
    - **Icon:** choose a clock icon
    - **Show in:** Navigation / Dashboard as preferred
 3. Because `X-Frame-Options` is suppressed on the Django side, the iFrame will load without browser security errors.

@@ -1,12 +1,12 @@
-# Handbuch: Arbeitszeit-Tool der Alhambra-Gesellschaft
+# Handbuch: Arbeitszeit-Tool
 
 **Version:** April 2026
 **Zielgruppe:** Alle Mitarbeiterinnen und Mitarbeiter
-**System:** arbeitszeit.alhambra-gesellschaft.de
+**System:** arbeitszeit.ihre-domain.de
 
 ---
 
-Willkommen beim Arbeitszeit-Tool der Alhambra-Gesellschaft. Dieses System ersetzt das bisherige Kimai und ermöglicht es Ihnen, Ihre Arbeitszeiten einfach zu erfassen, Urlaub zu beantragen und Ihre Stunden jederzeit einzusehen — alles auf einem Blick.
+Willkommen beim Arbeitszeit-Tool. Dieses System ermöglicht es Ihnen, Ihre Arbeitszeiten einfach zu erfassen, Urlaub zu beantragen und Ihre Stunden jederzeit einzusehen — alles auf einem Blick.
 
 Dieses Handbuch erklärt Ihnen Schritt für Schritt, wie das System funktioniert. Sie benötigen kein technisches Vorwissen.
 
@@ -50,17 +50,17 @@ Dieses Handbuch erklärt Ihnen Schritt für Schritt, wie das System funktioniert
 
 ### Wie melde ich mich an?
 
-Sie benötigen **keinen neuen Benutzernamen und kein neues Passwort**. Das Arbeitszeit-Tool nutzt Ihren bestehenden **Nextcloud-Account** (cloud.alhambra-gesellschaft.de).
+Sie benötigen **keinen neuen Benutzernamen und kein neues Passwort**. Das Arbeitszeit-Tool nutzt Ihren bestehenden **Nextcloud-Account** (cloud.ihre-domain.de).
 
 **Es gibt zwei Wege, das Tool zu öffnen:**
 
 **Weg 1 — über Nextcloud (empfohlen):**
-1. Melden Sie sich wie gewohnt bei Nextcloud an: [cloud.alhambra-gesellschaft.de](https://cloud.alhambra-gesellschaft.de)
+1. Melden Sie sich wie gewohnt bei Nextcloud an: [cloud.ihre-domain.de](https://cloud.ihre-domain.de)
 2. Klicken Sie in der linken Navigationsleiste auf den Eintrag **"Arbeitszeiten"** — dieser erscheint als eigene Seite direkt in Nextcloud.
 3. Das Arbeitszeit-Tool öffnet sich, ohne dass Sie sich erneut anmelden müssen.
 
 **Weg 2 — direkt im Browser:**
-1. Rufen Sie [arbeitszeit.alhambra-gesellschaft.de](https://arbeitszeit.alhambra-gesellschaft.de) auf.
+1. Rufen Sie [arbeitszeit.ihre-domain.de](https://arbeitszeit.ihre-domain.de) auf.
 2. Sie sehen eine Schaltfläche **"Mit Nextcloud anmelden"** (oder ähnlich). Klicken Sie darauf.
 3. Sie werden kurz zu Nextcloud weitergeleitet, bestätigen dort (falls nötig) die Anmeldung, und werden automatisch zurückgeleitet.
 4. Ab diesem Moment sind Sie im Arbeitszeit-Tool angemeldet.
@@ -341,7 +341,7 @@ Als Manager können Sie die Überstundenkonten Ihrer Teammitglieder einsehen.
 
 Wenden Sie sich hierfür an den Administrator, der Ihnen entsprechenden Zugang einrichten kann, oder sehen Sie sich die Berichte der einzelnen Mitarbeiter an (Abschnitt 9).
 
-Im **Django-Admin-Bereich** (arbeitszeit.alhambra-gesellschaft.de/admin/) können Manager mit erweiterten Rechten die Überstunden-Transaktionen aller Teammitglieder einsehen und ggf. manuelle Korrekturen beantragen.
+Im **Django-Admin-Bereich** (arbeitszeit.ihre-domain.de/admin/) können Manager mit erweiterten Rechten die Überstunden-Transaktionen aller Teammitglieder einsehen und ggf. manuelle Korrekturen beantragen.
 
 ---
 
@@ -355,7 +355,7 @@ Neue Mitarbeiter können sich selbst nicht registrieren — sie müssen von eine
 
 ### Schritt für Schritt
 
-1. Öffnen Sie den Admin-Bereich: [arbeitszeit.alhambra-gesellschaft.de/admin/](https://arbeitszeit.alhambra-gesellschaft.de/admin/)
+1. Öffnen Sie den Admin-Bereich: [arbeitszeit.ihre-domain.de/admin/](https://arbeitszeit.ihre-domain.de/admin/)
 2. Klicken Sie auf **"Benutzer"** (unter dem Abschnitt "Authentifizierung und Autorisierung").
 3. Klicken Sie oben rechts auf **"Benutzer hinzufügen"**.
 4. Tragen Sie ein:
@@ -538,9 +538,9 @@ Feiertage werden automatisch erkannt (für Bayern). An einem Feiertag gibt es ke
 
 ### Ich kann mich nicht einloggen — was tun?
 
-**Schritt 1:** Prüfen Sie, ob Sie sich bei Nextcloud (cloud.alhambra-gesellschaft.de) normal anmelden können. Wenn Nextcloud nicht funktioniert, liegt das Problem dort — sprechen Sie mit Ihrem Nextcloud-Administrator.
+**Schritt 1:** Prüfen Sie, ob Sie sich bei Nextcloud (cloud.ihre-domain.de) normal anmelden können. Wenn Nextcloud nicht funktioniert, liegt das Problem dort — sprechen Sie mit Ihrem Nextcloud-Administrator.
 
-**Schritt 2:** Falls Nextcloud funktioniert, aber das Arbeitszeit-Tool Sie nicht einloggt: Öffnen Sie [arbeitszeit.alhambra-gesellschaft.de](https://arbeitszeit.alhambra-gesellschaft.de) direkt im Browser (nicht über Nextcloud) und versuchen Sie den Login erneut.
+**Schritt 2:** Falls Nextcloud funktioniert, aber das Arbeitszeit-Tool Sie nicht einloggt: Öffnen Sie [arbeitszeit.ihre-domain.de](https://arbeitszeit.ihre-domain.de) direkt im Browser (nicht über Nextcloud) und versuchen Sie den Login erneut.
 
 **Schritt 3:** Falls es immer noch nicht klappt: Wenden Sie sich an die Verwaltung. Möglicherweise ist Ihr Konto im Arbeitszeit-Tool noch nicht angelegt oder Ihre E-Mail-Adresse stimmt nicht mit der Nextcloud-E-Mail überein.
 
@@ -550,4 +550,4 @@ Feiertage werden automatisch erkannt (für Bayern). An einem Feiertag gibt es ke
 
 *Bei weiteren Fragen wenden Sie sich bitte an Ihre zuständige Ansprechperson in der Verwaltung oder an den Administrator des Systems.*
 
-*Dieses Handbuch wurde erstellt für die Alhambra-Gesellschaft — April 2026.*
+*Dieses Handbuch wurde erstellt für die Ihr Unternehmen — April 2026.*

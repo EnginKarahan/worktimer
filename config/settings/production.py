@@ -8,7 +8,7 @@ X_FRAME_OPTIONS = ""  # Deaktiviert — Django setzt keinen X-Frame-Options Head
 SECURE_FRAME_DENY = False
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://cloud.alhambra-gesellschaft.de",
+    o.strip() for o in config("CSRF_TRUSTED_ORIGINS", default="").split(",") if o.strip()
 ]
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = True
@@ -23,7 +23,7 @@ SOCIALACCOUNT_PROVIDERS = {
         "APPS": [
             {
                 "provider_id": "nextcloud",
-                "name": "Nextcloud (Alhambra Cloud)",
+                "name": "Nextcloud",
                 "client_id": config("OIDC_CLIENT_ID", default=""),
                 "secret": config("OIDC_CLIENT_SECRET", default=""),
                 "settings": {

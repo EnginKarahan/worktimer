@@ -348,29 +348,27 @@ class SollIstCalculator:
         }
 
     def get_carry_over(self, user: User, year: int, month: int) -> int:
-        """Get carry over balance from previous months."""
-        from apps.overtime.models import OvertimeAccount, OvertimeTransaction
-
-        if month == 1:
-            prev_year = year - 1
-            prev_month = 12
-        else:
-            prev_year = year
-            prev_month = month - 1
+        """Kumulierter IST-SOLL-Saldo aller Monate vor dem angegebenen Monat."""
+        from apps.accounts.models import UserProfile
 
         try:
-            account = user.overtime_account
-            total = (
-                OvertimeTransaction.objects.filter(
-                    account=account,
-                    transaction_date__year=prev_year,
-                    transaction_date__month=prev_month,
-                ).aggregate(total=models.Sum("amount_minutes"))["total"]
-                or 0
-            )
-            return total
-        except OvertimeAccount.DoesNotExist:
+            hire_date = user.userprofile.hire_date
+        except UserProfile.DoesNotExist:
+            hire_date = None
+
+        if not hire_date:
             return 0
+
+        total = 0
+        y, m = hire_date.year, hire_date.month
+        while (y, m) < (year, month):
+            data = self.calculate_monthly_hours(user, y, m)
+            total += data["balance_minutes"]
+            m += 1
+            if m > 12:
+                m = 1
+                y += 1
+        return total
 
 
 class VacationBalanceService:

@@ -21,7 +21,7 @@
 </div>
 
 {# Summary row #}
-<div class="grid grid-cols-3 gap-4 mb-4">
+<div class="grid grid-cols-3 gap-4 mb-2">
     <div class="bg-white rounded-lg shadow p-3 text-center">
         <p class="text-xs text-gray-500">Soll</p>
         <p class="text-xl font-semibold">{{ total_soll_minutes|hours_decimal }} h</p>
@@ -31,9 +31,23 @@
         <p class="text-xl font-semibold">{{ total_ist_minutes|hours_decimal }} h</p>
     </div>
     <div class="bg-white rounded-lg shadow p-3 text-center">
-        <p class="text-xs text-gray-500">Saldo</p>
+        <p class="text-xs text-gray-500">Saldo (Monat)</p>
         <p class="text-xl font-semibold {% if total_balance_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
             {% if total_balance_minutes >= 0 %}+{% endif %}{{ total_balance_minutes|hours_decimal }} h
+        </p>
+    </div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="bg-white rounded-lg shadow p-3 text-center">
+        <p class="text-xs text-gray-500">Übertrag Vormonat</p>
+        <p class="text-xl font-semibold {% if carry_over_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            {% if carry_over_minutes >= 0 %}+{% endif %}{{ carry_over_minutes|hours_decimal }} h
+        </p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-3 text-center">
+        <p class="text-xs text-gray-500">Gesamtsaldo</p>
+        <p class="text-xl font-semibold {% if total_with_carry_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            {% if total_with_carry_minutes >= 0 %}+{% endif %}{{ total_with_carry_minutes|hours_decimal }} h
         </p>
     </div>
 </div>
@@ -131,11 +145,27 @@
         </tbody>
         <tfoot class="bg-gray-50 border-t-2 border-gray-200 font-semibold">
             <tr>
-                <td colspan="3" class="px-3 py-2 text-gray-700">Gesamt</td>
+                <td colspan="3" class="px-3 py-2 text-gray-700">Gesamt (Monat)</td>
                 <td class="px-3 py-2 text-right">{{ total_soll_minutes|hours_decimal }}</td>
                 <td class="px-3 py-2 text-right">{{ total_ist_minutes|hours_decimal }}</td>
                 <td class="px-3 py-2 text-right {% if total_balance_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
                     {% if total_balance_minutes >= 0 %}+{% endif %}{{ total_balance_minutes|hours_decimal }}
+                </td>
+                <td></td>
+            </tr>
+            <tr class="border-t border-gray-200">
+                <td colspan="3" class="px-3 py-2 text-gray-700">Übertrag Vormonat</td>
+                <td colspan="2"></td>
+                <td class="px-3 py-2 text-right {% if carry_over_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if carry_over_minutes >= 0 %}+{% endif %}{{ carry_over_minutes|hours_decimal }}
+                </td>
+                <td></td>
+            </tr>
+            <tr class="border-t-2 border-gray-300">
+                <td colspan="3" class="px-3 py-2 text-gray-900">Gesamtsaldo</td>
+                <td colspan="2"></td>
+                <td class="px-3 py-2 text-right {% if total_with_carry_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                    {% if total_with_carry_minutes >= 0 %}+{% endif %}{{ total_with_carry_minutes|hours_decimal }}
                 </td>
                 <td></td>
             </tr>

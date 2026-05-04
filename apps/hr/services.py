@@ -370,6 +370,14 @@ class SollIstCalculator:
                 y += 1
         return total
 
+    def get_total_balance_minutes(self, user: User) -> int:
+        """Kumulierter IST-SOLL-Saldo von hire_date bis einschließlich laufendem Monat."""
+        from django.utils import timezone
+        today = timezone.now().date()
+        carry_over = self.get_carry_over(user, today.year, today.month)
+        current = self.calculate_monthly_hours(user, today.year, today.month)
+        return carry_over + current["balance_minutes"]
+
 
 class VacationBalanceService:
     """Public service to get vacation balance."""

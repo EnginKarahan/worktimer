@@ -12,7 +12,6 @@ from apps.absences.models import AbsenceRequest
 from apps.absences.services import ApprovalService
 from apps.core.models import AuditLog
 from apps.core.permissions import hr_required
-from apps.overtime.services import OvertimeCalculator
 from apps.timesessions.models import TimeEntry
 from apps.timesessions.services import CorrectionService
 from apps.timesessions.exceptions import CorrectionWindowError
@@ -62,7 +61,6 @@ def hr_dashboard(request):
 
     from apps.absences.services import calculate_vacation_entitlement, ApprovalService as AbsApprovalService
 
-    ot_calculator = OvertimeCalculator()
     sollist = SollIstCalculator()
     active_users = User.objects.filter(is_active=True).exclude(username="admin").select_related("userprofile").order_by("last_name", "first_name")
     clocked_in_ids = set(clocked_in.values_list("user_id", flat=True))
@@ -74,9 +72,7 @@ def hr_dashboard(request):
 
     year = today.year
     for u in active_users:
-        settled = ot_calculator.get_balance_minutes(u)
-        current = sollist.calculate_monthly_hours(u, year, today.month)
-        balance = settled + current["balance_minutes"]
+        balance = sollist.get_total_balance_minutes(u)
         entitlement = calculate_vacation_entitlement(u, year)
         vac_balance = AbsApprovalService()._get_vacation_balance(u, year=year)
         vac_used = round(entitlement - vac_balance, 1)
@@ -176,11 +172,7 @@ def employee_detail(request, pk):
     employee = get_object_or_404(User, pk=pk)
     today = timezone.now().date()
     year = today.year
-    # Live balance: settled transactions + unsettled current month
-    calculator = OvertimeCalculator()
-    settled_balance = calculator.get_balance_minutes(employee)
-    current_month_data = SollIstCalculator().calculate_monthly_hours(employee, year, today.month)
-    balance = settled_balance + current_month_data["balance_minutes"]
+    balance = SollIstCalculator().get_total_balance_minutes(employee)
     current_absence = AbsenceRequest.objects.filter(
         user=employee,
         status="APPROVED",
@@ -698,8 +690,7 @@ def adjust_overtime(request, pk):
         )
         return redirect("hr:employee_detail", pk=pk)
 
-    calculator = OvertimeCalculator()
-    current_balance = calculator.get_balance_minutes(employee)
+    current_balance = SollIstCalculator().get_total_balance_minutes(employee)
 
     return render(
         request,
@@ -765,6 +756,10 @@ def employee_timesheet(request, pk, year=None, month=None):
     builder = TimesheetBuilder()
     sheet = builder.build(employee, year, month)
 
+    calculator = SollIstCalculator()
+    carry_over_minutes = calculator.get_carry_over(employee, year, month)
+    total_with_carry_minutes = carry_over_minutes + sheet["total_balance_minutes"]
+
     return render(request, "hr/employee_timesheet.html", {
         "employee": employee,
         "year": year,
@@ -774,6 +769,8 @@ def employee_timesheet(request, pk, year=None, month=None):
         "total_soll_minutes": sheet["total_soll_minutes"],
         "total_ist_minutes": sheet["total_ist_minutes"],
         "total_balance_minutes": sheet["total_balance_minutes"],
+        "carry_over_minutes": carry_over_minutes,
+        "total_with_carry_minutes": total_with_carry_minutes,
         "prev_year": prev_year,
         "prev_month": prev_month,
         "next_year": next_year,

@@ -12,7 +12,6 @@ from .models import TimeEntry
 def dashboard(request):
     from django.utils.timezone import now
     from apps.absences.services import calculate_vacation_entitlement, ApprovalService
-    from apps.overtime.services import OvertimeCalculator
     from apps.hr.services import SollIstCalculator
     service = TimerService()
     active = service.get_active_entry(request.user)
@@ -23,9 +22,7 @@ def dashboard(request):
     year = today.year
     vac_entitlement = calculate_vacation_entitlement(request.user, year)
     vac_balance = ApprovalService()._get_vacation_balance(request.user, year=year)
-    settled_balance = OvertimeCalculator().get_balance_minutes(request.user)
-    current_month_data = SollIstCalculator().calculate_monthly_hours(request.user, year, today.month)
-    ot_balance = settled_balance + current_month_data["balance_minutes"]
+    ot_balance = SollIstCalculator().get_total_balance_minutes(request.user)
     return render(request, "timesessions/dashboard.html", {
         "active_entry": active,
         "today_entries": today_entries,

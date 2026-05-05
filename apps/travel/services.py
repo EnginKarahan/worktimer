@@ -1,6 +1,8 @@
+import logging
 from datetime import timedelta
 from decimal import Decimal
 
+from django.core.files.storage import default_storage
 from django.db import models, transaction
 from django.db.models import Sum
 from django.template.loader import render_to_string
@@ -8,6 +10,15 @@ from django.utils.timezone import now, localtime
 
 from apps.core.models import AuditLog
 from .models import TravelExpenseReport, TravelDay, TravelReceipt
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_delete_file(file_name):
+    try:
+        default_storage.delete(file_name)
+    except Exception as exc:
+        logger.warning("Konnte Beleg-Datei nicht löschen %s: %s", file_name, exc)
 
 VMA_FULL_DAY = Decimal("28.00")
 VMA_PARTIAL_DAY = Decimal("14.00")
@@ -150,21 +161,39 @@ class TravelExpenseService:
 
     def _rebuild_days(self, report, day_provisions):
         calc = VMACalculatorService()
+
+        # Merge: existing flags as base, explicit day_provisions override per date.
+        # This preserves meal deductions already saved when only travel dates change.
+        existing = {d.date: d for d in report.days.all()}
+        merged = {}
+        for date, old in existing.items():
+            merged[date] = {
+                "breakfast": old.breakfast_provided,
+                "lunch": old.lunch_provided,
+                "dinner": old.dinner_provided,
+                "overnight": old.overnight,
+                "overnight_flat_rate": old.overnight_flat_rate,
+            }
+        for date, prov in day_provisions.items():
+            if date in merged:
+                merged[date].update(prov)
+            else:
+                merged[date] = prov
+
         if report.is_domestic:
             vma_data = calc.calculate(
                 report.departure_datetime,
                 report.return_datetime,
-                day_provisions,
+                merged,
             )
         else:
             # Auslandssätze noch nicht implementiert; VMA = 0
             vma_data = []
 
-        existing = {d.date: d for d in report.days.all()}
         report.days.all().delete()
 
         for entry in vma_data:
-            old = existing.get(entry["date"])
+            prov = merged.get(entry["date"], {})
             TravelDay.objects.create(
                 report=report,
                 date=entry["date"],
@@ -172,11 +201,11 @@ class TravelExpenseService:
                 vma_base=entry["vma_base"],
                 vma_deduction=entry["vma_deduction"],
                 vma_net=entry["vma_net"],
-                breakfast_provided=old.breakfast_provided if old else False,
-                lunch_provided=old.lunch_provided if old else False,
-                dinner_provided=old.dinner_provided if old else False,
-                overnight=old.overnight if old else False,
-                overnight_flat_rate=old.overnight_flat_rate if old else False,
+                breakfast_provided=prov.get("breakfast", False),
+                lunch_provided=prov.get("lunch", False),
+                dinner_provided=prov.get("dinner", False),
+                overnight=prov.get("overnight", False),
+                overnight_flat_rate=prov.get("overnight_flat_rate", False),
             )
 
     def _recalculate_totals(self, report):
@@ -230,9 +259,8 @@ class TravelExpenseService:
 
     def delete_receipt(self, receipt, request=None):
         report = receipt.report
+        file_name = receipt.file.name if receipt.file else None
         with transaction.atomic():
-            if receipt.file:
-                receipt.file.delete(save=False)
             AuditLog.log(
                 actor=request.user if request else report.user,
                 action="travel_receipt_deleted",
@@ -242,6 +270,8 @@ class TravelExpenseService:
             )
             receipt.delete()
             self._recalculate_totals(report)
+            if file_name:
+                transaction.on_commit(lambda: _safe_delete_file(file_name))
 
     def submit_report(self, report, request=None):
         with transaction.atomic():

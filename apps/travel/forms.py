@@ -111,6 +111,8 @@ class TravelReceiptForm(forms.ModelForm):
             "vat_rate",
             "category",
             "description",
+            "taxi_reason",
+            "paid_by_employer",
             "file",
         ]
         widgets = {
@@ -121,6 +123,7 @@ class TravelReceiptForm(forms.ModelForm):
                 }
             ),
             "description": forms.Textarea(attrs={"rows": 2}),
+            "taxi_reason": forms.Textarea(attrs={"rows": 2, "placeholder": "z. B. Zugverspätung – Termin nicht rechtzeitig per ÖPNV erreichbar"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -128,10 +131,17 @@ class TravelReceiptForm(forms.ModelForm):
         self.fields["original_amount"].required = False
         self.fields["exchange_rate"].required = False
         self.fields["description"].required = False
+        self.fields["taxi_reason"].required = False
         self.fields["file"].required = False
         for name, field in self.fields.items():
             if not isinstance(field.widget, (forms.CheckboxInput, forms.FileInput)):
                 field.widget.attrs.setdefault("class", "w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500")
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("category") == "TAXI" and not cleaned.get("taxi_reason", "").strip():
+            self.add_error("taxi_reason", "Bei Taxi-Fahrten ist eine Begründung erforderlich.")
+        return cleaned
 
     def clean_file(self):
         f = self.cleaned_data.get("file")

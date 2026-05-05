@@ -1,7 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Sum
 from django.template.loader import render_to_string
 from django.utils.timezone import now, localtime
@@ -183,14 +183,22 @@ class TravelExpenseService:
         calc = VMACalculatorService()
         vma = report.days.aggregate(t=Sum("vma_net"))["t"] or Decimal("0")
         transport = calc.calculate_transport(report.transport_type, report.private_car_km)
-        receipts = report.receipts.aggregate(t=Sum("gross_amount"))["t"] or Decimal("0")
+        agg = report.receipts.aggregate(
+            total=Sum("gross_amount"),
+            employer=Sum("gross_amount", filter=models.Q(paid_by_employer=True)),
+        )
+        receipts = agg["total"] or Decimal("0")
+        employer_paid = agg["employer"] or Decimal("0")
         report.vma_total = vma
         report.transport_total = transport
         report.receipts_total = receipts
+        report.employer_paid_total = employer_paid
         report.grand_total = vma + transport + receipts
+        report.to_reimburse_total = vma + transport + (receipts - employer_paid)
         report.save(
             update_fields=[
-                "vma_total", "transport_total", "receipts_total", "grand_total", "updated_at"
+                "vma_total", "transport_total", "receipts_total",
+                "employer_paid_total", "grand_total", "to_reimburse_total", "updated_at",
             ]
         )
 
@@ -206,6 +214,8 @@ class TravelExpenseService:
                 vat_rate=cleaned_data.get("vat_rate", "19"),
                 category=cleaned_data["category"],
                 description=cleaned_data.get("description", ""),
+                taxi_reason=cleaned_data.get("taxi_reason", ""),
+                paid_by_employer=cleaned_data.get("paid_by_employer", False),
                 file=file,
             )
             self._recalculate_totals(report)

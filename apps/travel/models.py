@@ -37,6 +37,7 @@ RECEIPT_CATEGORY_CHOICES = [
     ("PARKING", "Parken"),
     ("TOLL", "Maut"),
     ("TICKET", "Fahrkarte / Flug"),
+    ("TAXI", "Taxi"),
     ("OTHER", "Sonstiges"),
 ]
 
@@ -110,8 +111,14 @@ class TravelExpenseReport(TimestampedModel):
     receipts_total = models.DecimalField(
         max_digits=8, decimal_places=2, default=Decimal("0"), verbose_name="Belege gesamt (€)"
     )
+    employer_paid_total = models.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0"), verbose_name="Durch AG bezahlt (€)"
+    )
     grand_total = models.DecimalField(
         max_digits=8, decimal_places=2, default=Decimal("0"), verbose_name="Gesamtbetrag (€)"
+    )
+    to_reimburse_total = models.DecimalField(
+        max_digits=8, decimal_places=2, default=Decimal("0"), verbose_name="Zu überweisen (€)"
     )
 
     status = models.CharField(
@@ -224,6 +231,12 @@ class TravelReceipt(TimestampedModel):
         max_length=20, choices=RECEIPT_CATEGORY_CHOICES, verbose_name="Kategorie"
     )
     description = models.TextField(blank=True, verbose_name="Beschreibung")
+    taxi_reason = models.TextField(
+        blank=True, verbose_name="Begründung (Taxi)"
+    )
+    paid_by_employer = models.BooleanField(
+        default=False, verbose_name="Bereits durch Arbeitgeber bezahlt"
+    )
     file = models.FileField(
         upload_to=travel_receipt_upload_path,
         null=True,

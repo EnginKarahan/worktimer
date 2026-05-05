@@ -136,23 +136,25 @@
     <tr>
       <th>Datum</th>
       <th>Kategorie</th>
-      <th>Beschreibung</th>
+      <th>Beschreibung / Begründung</th>
       <th class="center">MwSt.</th>
       <th class="right">Nettobetrag</th>
       <th class="right">MwSt.-Betrag</th>
       <th class="right">Bruttobetrag</th>
+      <th class="center">AG bezahlt</th>
     </tr>
   </thead>
   <tbody>
     {% for r in receipts %}
-    <tr>
+    <tr{% if r.paid_by_employer %} style="background:#eff6ff;"{% endif %}>
       <td>{{ r.date|date:"d.m.Y" }}</td>
       <td>{{ r.get_category_display }}</td>
-      <td>{{ r.description|default:"–" }}</td>
+      <td>{{ r.description|default:"" }}{% if r.taxi_reason %}<br><em style="font-size:8pt;color:#b45309;">Begr.: {{ r.taxi_reason }}</em>{% endif %}</td>
       <td class="center">{{ r.vat_rate }} %</td>
       <td class="right">{{ r.net_amount }} €</td>
       <td class="right">{{ r.vat_amount }} €</td>
-      <td class="right">{{ r.gross_amount }} €</td>
+      <td class="right"{% if r.paid_by_employer %} style="color:#2563EB;"{% endif %}>{{ r.gross_amount }} €</td>
+      <td class="center">{% if r.paid_by_employer %}✓{% else %}–{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -160,7 +162,15 @@
     <tr class="total-row">
       <td colspan="6">Belege gesamt</td>
       <td class="right">{{ report.receipts_total }} €</td>
+      <td></td>
     </tr>
+    {% if report.employer_paid_total %}
+    <tr>
+      <td colspan="6" style="text-align:right;font-size:8pt;color:#2563EB;">davon AG bezahlt:</td>
+      <td class="right" style="font-size:8pt;color:#2563EB;">{{ report.employer_paid_total }} €</td>
+      <td></td>
+    </tr>
+    {% endif %}
   </tfoot>
 </table>
 {% endif %}
@@ -169,7 +179,9 @@
   <div class="summary-row"><span>Verpflegungsmehraufwand (VMA)</span><span>{{ report.vma_total }} €</span></div>
   <div class="summary-row"><span>Fahrtkosten</span><span>{{ report.transport_total }} €</span></div>
   <div class="summary-row"><span>Belege / Auslagen</span><span>{{ report.receipts_total }} €</span></div>
-  <div class="summary-row summary-total"><span>Gesamtbetrag</span><span>{{ report.grand_total }} €</span></div>
+  {% if report.employer_paid_total %}<div class="summary-row" style="color:#2563EB;font-size:9pt;"><span>davon durch Arbeitgeber beglichen</span><span>{{ report.employer_paid_total }} €</span></div>{% endif %}
+  <div class="summary-row" style="border-top:1px solid #9ca3af;padding-top:4px;"><span>Gesamtbetrag Reisekosten</span><span>{{ report.grand_total }} €</span></div>
+  <div class="summary-row summary-total" style="color:#16a34a;border-top:2px solid #16a34a;"><span>Zu überweisen an Mitarbeiter/in</span><span>{{ report.to_reimburse_total }} €</span></div>
 </div>
 
 <div class="signatures">

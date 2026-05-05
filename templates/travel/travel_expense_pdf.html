@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a1a1a; }
+  .header { display: flex; justify-content: space-between; border-bottom: 2px solid #2563EB; padding-bottom: 12px; margin-bottom: 16px; }
+  .title { font-size: 14pt; font-weight: bold; color: #2563EB; }
+  .subtitle { font-size: 10pt; color: #374151; margin-top: 2px; }
+  h2 { font-size: 11pt; color: #1e40af; margin: 16px 0 6px 0; border-bottom: 1px solid #bfdbfe; padding-bottom: 3px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  th { background: #2563EB; color: white; padding: 5px 8px; text-align: left; font-size: 9pt; }
+  th.right { text-align: right; }
+  td { padding: 4px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9pt; }
+  td.right { text-align: right; }
+  td.center { text-align: center; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  .total-row td { font-weight: bold; background: #eff6ff; border-top: 2px solid #2563EB; }
+  .summary { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 12px; margin-bottom: 16px; }
+  .summary-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 10pt; }
+  .summary-total { font-size: 12pt; font-weight: bold; border-top: 1px solid #2563EB; padding-top: 6px; margin-top: 4px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; font-size: 9pt; }
+  .info-item dt { color: #6b7280; font-size: 8pt; text-transform: uppercase; }
+  .info-item dd { font-weight: bold; color: #111827; margin: 0; }
+  .signatures { margin-top: 40px; display: flex; justify-content: space-between; }
+  .sig-block { border-top: 1px solid #374151; padding-top: 8px; width: 200px; font-size: 9pt; color: #6b7280; }
+  .footer { position: fixed; bottom: 0; width: 100%; font-size: 8pt; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 4px; display: flex; justify-content: space-between; }
+  .check { color: #16a34a; }
+  .no-data { color: #9ca3af; font-style: italic; text-align: center; padding: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="title">Reisekostenabrechnung</div>
+    <div class="subtitle">{{ company_name }} | {{ report.user.get_full_name|default:report.user.username }}</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-weight:bold">{{ report.title }}</div>
+    <div style="font-size:9pt; color:#6b7280;">Erstellt am {{ generated_at|date:"d.m.Y H:i" }} Uhr</div>
+    <div style="font-size:9pt; color:#6b7280;">Status: {{ report.get_status_display }}</div>
+  </div>
+</div>
+
+<h2>Reisedaten</h2>
+<div class="info-grid">
+  <div class="info-item"><dt>Reiseziel</dt><dd>{{ report.destination }}</dd></div>
+  <div class="info-item"><dt>Abfahrt</dt><dd>{{ report.departure_datetime|date:"d.m.Y H:i" }} Uhr</dd></div>
+  <div class="info-item"><dt>Rückkehr</dt><dd>{{ report.return_datetime|date:"d.m.Y H:i" }} Uhr</dd></div>
+  <div class="info-item"><dt>Art</dt><dd>{% if report.is_domestic %}Inland{% else %}Ausland{% endif %}</dd></div>
+  <div class="info-item"><dt>Verkehrsmittel</dt><dd>{{ report.get_transport_type_display }}</dd></div>
+  {% if report.transport_type == 'PRIVATE_CAR' %}
+  <div class="info-item"><dt>Gefahrene km</dt><dd>{{ report.private_car_km }} km</dd></div>
+  {% endif %}
+  {% if report.booking_class %}
+  <div class="info-item"><dt>Buchungsklasse</dt><dd>{{ report.get_booking_class_display }}</dd></div>
+  {% endif %}
+  {% if report.discount_card %}
+  <div class="info-item"><dt>Rabattkarte</dt><dd>{{ report.get_discount_card_display }}</dd></div>
+  {% endif %}
+</div>
+{% if report.notes %}
+<p style="font-size:9pt; color:#374151; margin:0 0 12px 0;"><strong>Anmerkungen:</strong> {{ report.notes }}</p>
+{% endif %}
+
+{% if days %}
+<h2>Verpflegungsmehraufwand (VMA)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Datum</th>
+      <th>Tagestyp</th>
+      <th class="center">Frühstück</th>
+      <th class="center">Mittag</th>
+      <th class="center">Abendessen</th>
+      <th class="right">Grundbetrag</th>
+      <th class="right">Kürzung</th>
+      <th class="right">VMA netto</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for day in days %}
+    <tr>
+      <td>{{ day.date|date:"d.m.Y" }}</td>
+      <td>{{ day.get_day_type_display }}</td>
+      <td class="center">{% if day.breakfast_provided %}<span class="check">✓</span>{% else %}–{% endif %}</td>
+      <td class="center">{% if day.lunch_provided %}<span class="check">✓</span>{% else %}–{% endif %}</td>
+      <td class="center">{% if day.dinner_provided %}<span class="check">✓</span>{% else %}–{% endif %}</td>
+      <td class="right">{{ day.vma_base }} €</td>
+      <td class="right">{% if day.vma_deduction %}-{{ day.vma_deduction }} €{% else %}–{% endif %}</td>
+      <td class="right">{{ day.vma_net }} €</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr class="total-row">
+      <td colspan="7">VMA gesamt</td>
+      <td class="right">{{ report.vma_total }} €</td>
+    </tr>
+  </tfoot>
+</table>
+<p style="font-size:8pt; color:#6b7280;">Kürzungen gemäß §4 Abs. 5 Nr. 5 EStG (immer vom vollen 24h-Satz 28,00 €): Frühstück −5,60 €, Mittagessen −11,20 €, Abendessen −11,20 €.</p>
+{% endif %}
+
+<h2>Fahrtkosten</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Verkehrsmittel</th>
+      <th class="right">km</th>
+      <th class="right">Pauschale</th>
+      <th class="right">Betrag</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ report.get_transport_type_display }}</td>
+      <td class="right">{% if report.transport_type == 'PRIVATE_CAR' %}{{ report.private_car_km }} km{% else %}–{% endif %}</td>
+      <td class="right">{% if report.transport_type == 'PRIVATE_CAR' %}0,30 €/km{% else %}gem. Beleg{% endif %}</td>
+      <td class="right">{{ report.transport_total }} €</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr class="total-row">
+      <td colspan="3">Fahrtkosten gesamt</td>
+      <td class="right">{{ report.transport_total }} €</td>
+    </tr>
+  </tfoot>
+</table>
+
+{% if receipts %}
+<h2>Belege / Auslagen</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Datum</th>
+      <th>Kategorie</th>
+      <th>Beschreibung</th>
+      <th class="center">MwSt.</th>
+      <th class="right">Nettobetrag</th>
+      <th class="right">MwSt.-Betrag</th>
+      <th class="right">Bruttobetrag</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in receipts %}
+    <tr>
+      <td>{{ r.date|date:"d.m.Y" }}</td>
+      <td>{{ r.get_category_display }}</td>
+      <td>{{ r.description|default:"–" }}</td>
+      <td class="center">{{ r.vat_rate }} %</td>
+      <td class="right">{{ r.net_amount }} €</td>
+      <td class="right">{{ r.vat_amount }} €</td>
+      <td class="right">{{ r.gross_amount }} €</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr class="total-row">
+      <td colspan="6">Belege gesamt</td>
+      <td class="right">{{ report.receipts_total }} €</td>
+    </tr>
+  </tfoot>
+</table>
+{% endif %}
+
+<div class="summary">
+  <div class="summary-row"><span>Verpflegungsmehraufwand (VMA)</span><span>{{ report.vma_total }} €</span></div>
+  <div class="summary-row"><span>Fahrtkosten</span><span>{{ report.transport_total }} €</span></div>
+  <div class="summary-row"><span>Belege / Auslagen</span><span>{{ report.receipts_total }} €</span></div>
+  <div class="summary-row summary-total"><span>Gesamtbetrag</span><span>{{ report.grand_total }} €</span></div>
+</div>
+
+<div class="signatures">
+  <div class="sig-block">
+    <div>{{ report.user.get_full_name }}</div>
+    <div>Datum / Unterschrift Mitarbeiter/in</div>
+  </div>
+  <div class="sig-block">
+    {% if report.reviewer %}{{ report.reviewer.get_full_name }}{% endif %}
+    <div>Datum / Unterschrift Genehmiger/in</div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>{{ company_name }} – Reisekostenabrechnung {{ report.title }}</span>
+  <span>Seite <pdf:pagenumber> von <pdf:pagecount></span>
+</div>
+
+</body>
+</html>

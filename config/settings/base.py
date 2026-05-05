@@ -30,7 +30,10 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.api",
     "apps.hr",
+    "apps.travel",
 ]
+
+TRAVEL_RECEIPT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.core.permissions import hr_required
 
-from .forms import TravelDayProvisionFormSet, TravelExpenseReportForm, TravelReceiptForm, TravelRejectForm
-from .models import TravelExpenseReport, TravelReceipt
+from .forms import TravelDayProvisionFormSet, TravelExpenseReportForm, TravelReceiptForm, TravelRejectForm, TravelSettingsForm
+from .models import TravelExpenseReport, TravelReceipt, TravelSettings
 from .services import TravelExpenseService, generate_travel_pdf
 
 
@@ -237,3 +237,31 @@ def hr_travel_pdf(request, pk):
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+@hr_required
+def hr_travel_resend(request, pk):
+    if request.method != "POST":
+        return redirect("travel:hr_detail", pk=pk)
+    report = get_object_or_404(TravelExpenseReport, pk=pk)
+    if report.status not in ("SUBMITTED", "APPROVED"):
+        messages.error(request, "Nur eingereichte oder genehmigte Abrechnungen können erneut gesendet werden.")
+        return redirect("travel:hr_detail", pk=pk)
+    from .tasks import send_travel_report_to_accounting
+    send_travel_report_to_accounting.delay(report.pk)
+    messages.success(request, "Abrechnung erneut an das Rechnungswesen gesendet.")
+    return redirect("travel:hr_detail", pk=pk)
+
+
+@hr_required
+def hr_travel_settings(request):
+    instance = TravelSettings.get_solo()
+    if request.method == "POST":
+        form = TravelSettingsForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Einstellungen gespeichert.")
+            return redirect("travel:hr_settings")
+    else:
+        form = TravelSettingsForm(instance=instance)
+    return render(request, "travel/hr_settings.html", {"form": form})

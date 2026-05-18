@@ -13,7 +13,16 @@
             {{ report.get_status_display }}
         </span>
     </div>
-    <a href="{% url 'travel:hr_pdf' report.pk %}" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm">PDF herunterladen</a>
+    <div class="flex items-center gap-2">
+        {% if report.status == 'SUBMITTED' or report.status == 'APPROVED' %}
+        <form method="post" action="{% url 'travel:hr_resend' report.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm" title="PDF + Belege erneut an das Rechnungswesen senden">Erneut an Rechnungswesen senden</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'travel:hr_pdf' report.pk %}" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm">PDF herunterladen</a>
+        <a href="{% url 'travel:hr_settings' %}" class="px-3 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm" title="Einstellungen">&#9881;</a>
+    </div>
 </div>
 
 {% if messages %}

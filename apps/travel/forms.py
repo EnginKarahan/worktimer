@@ -4,7 +4,7 @@ from decimal import Decimal
 from django import forms
 from django.conf import settings
 
-from .models import TravelExpenseReport, TravelDay, TravelReceipt, BOOKING_CLASS_CHOICES, DISCOUNT_CARD_CHOICES
+from .models import TravelExpenseReport, TravelDay, TravelReceipt, TravelSettings, BOOKING_CLASS_CHOICES, DISCOUNT_CARD_CHOICES
 
 ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".tif", ".tiff"}
 ALLOWED_MIME_TYPES = {
@@ -186,3 +186,17 @@ class TravelRejectForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 3, "class": "w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"}),
         required=True,
     )
+
+
+class TravelSettingsForm(forms.ModelForm):
+    class Meta:
+        model = TravelSettings
+        fields = ["accounting_email", "hr_notification_email"]
+        widgets = {
+            "accounting_email": forms.EmailInput(
+                attrs={"class": "w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"}
+            ),
+            "hr_notification_email": forms.EmailInput(
+                attrs={"class": "w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"}
+            ),
+        }

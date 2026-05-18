@@ -32,6 +32,14 @@
 - Bundesland-spezifische Feiertagskalender für alle 16 Bundesländer (via `workalendar`)
 - Lückenloser Audit-Log aller Änderungen mit Akteur, Zeitstempel und IP
 
+**Reisekostenabrechnung:**
+- Reisekostenabrechnungen erstellen, bearbeiten und einreichen (DRAFT → SUBMITTED → APPROVED/REJECTED)
+- Automatische VMA-Berechnung nach deutschen Sätzen 2026 (Volltag 28 €, An-/Abreisetag 14 €, eintägige Reise 14 €) inkl. Mahlzeitkürzungen
+- Belegerfassung mit Kategorie (Hotel, Mahlzeit, Taxi, Fahrkarte …), MwSt.-Ausweis, Fremdwährung und Datei-Upload
+- Km-Abrechnung bei Privatfahrzeug (0,30 €/km), Buchungsklasse und Rabattkarte bei Bahn/Flug
+- AG-bezahlt-Flag pro Beleg — separate Auszahlungssumme ("Zu überweisen")
+- HR-Prüfworkflow: Genehmigen / Ablehnen mit Kommentar; PDF-Export pro Abrechnung
+
 **Integration:**
 - SSO über Nextcloud OIDC (PKCE)
 - iFrame-Einbettung in Nextcloud
@@ -63,6 +71,7 @@ A Django-based time tracking and absence management system for self-hosted deplo
 - **Background tasks** — Celery + Celery Beat with 6 scheduled jobs (see below)
 - **Soft-delete** — HR-deleted time entries move to a trash with restore capability
 - **Multilingual UI** — German (default), English, Turkish
+- **Travel expense reports** — employee-facing wizard (VMA auto-calculation per §3 EStG 2026 rates, receipt upload, km allowance); HR approval workflow; PDF export
 
 ---
 
@@ -107,6 +116,7 @@ arbeitszeit-app/
 │   ├── overtime/          # OvertimeAccount, OvertimeTransaction, calculator, tasks
 │   ├── projects/          # Project model (FK on TimeEntry)
 │   ├── reports/
+│   ├── travel/            # TravelExpenseReport, TravelDay, TravelReceipt; VMACalculatorService; PDF export
 │   │   └── services/
 │   │       ├── pdf_service.py
 │   │       └── excel_service.py

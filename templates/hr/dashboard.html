@@ -83,6 +83,16 @@
         </div>
     </div>
 
+    <!-- Reisekosten -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Reisekostenabrechnungen</h2>
+        <div class="space-y-2 text-sm">
+            <a href="{% url 'travel:hr_list' %}" class="block text-blue-600 hover:underline">Alle Abrechnungen</a>
+            <a href="{% url 'travel:hr_list' %}?status=SUBMITTED" class="block text-blue-600 hover:underline">Offene Abrechnungen (eingereicht)</a>
+            <a href="{% url 'travel:hr_settings' %}" class="block text-blue-600 hover:underline">Einstellungen (E-Mail-Adressen)</a>
+        </div>
+    </div>
+
     <!-- Minusstunden -->
     {% if deficit_users %}
     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-400">

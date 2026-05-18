@@ -260,3 +260,28 @@ class TravelReceipt(TimestampedModel):
     @property
     def vat_amount(self):
         return (self.gross_amount - self.net_amount).quantize(Decimal("0.01"))
+
+
+class TravelSettings(models.Model):
+    accounting_email = models.EmailField(
+        verbose_name="Rechnungswesen E-Mail",
+        blank=True,
+        help_text=(
+            "Empfänger für Reisekostenabrechnung mit PDF + Belegen beim Einreichen. "
+            "Leer = Env-Variable TRAVEL_ACCOUNTING_EMAIL wird verwendet."
+        ),
+    )
+    hr_notification_email = models.EmailField(
+        blank=True,
+        verbose_name="HR-Benachrichtigungs-E-Mail",
+        help_text="Leer = alle aktiven HR/Admin-Benutzer erhalten die Benachrichtigung.",
+    )
+
+    class Meta:
+        verbose_name = "Reisekosten-Einstellungen"
+        verbose_name_plural = "Reisekosten-Einstellungen"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

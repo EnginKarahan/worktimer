@@ -25,18 +25,20 @@ Dieses Handbuch erklärt Ihnen Schritt für Schritt, wie das System funktioniert
 8. [Überstundenkonto](#8-überstundenkonto)
 9. [Berichte herunterladen](#9-berichte-herunterladen)
 10. [Mein Profil](#10-mein-profil)
+11. [Reisekostenabrechnung einreichen](#11-reisekostenabrechnung-einreichen)
 
 **Für Manager**
-11. [Urlaubsanträge genehmigen oder ablehnen](#11-urlaubsanträge-genehmigen-oder-ablehnen)
-12. [Team-Kalender](#12-team-kalender)
-13. [Überstunden im Blick behalten](#13-überstunden-im-blick-behalten)
+12. [Urlaubsanträge genehmigen oder ablehnen](#12-urlaubsanträge-genehmigen-oder-ablehnen)
+13. [Team-Kalender](#13-team-kalender)
+14. [Überstunden im Blick behalten](#14-überstunden-im-blick-behalten)
+15. [Reisekostenabrechnungen prüfen](#15-reisekostenabrechnungen-prüfen)
 
 **Für Administratoren**
-14. [Neuen Mitarbeiter anlegen](#14-neuen-mitarbeiter-anlegen)
-15. [Arbeitszeitpläne pflegen](#15-arbeitszeitpläne-pflegen)
-16. [Feiertage](#16-feiertage)
-17. [Monatliche Berichte für den Steuerberater](#17-monatliche-berichte-für-den-steuerberater)
-18. [Kimai-Übergangszeit](#18-kimai-übergangszeit)
+16. [Neuen Mitarbeiter anlegen](#16-neuen-mitarbeiter-anlegen)
+17. [Arbeitszeitpläne pflegen](#17-arbeitszeitpläne-pflegen)
+18. [Feiertage](#18-feiertage)
+19. [Monatliche Berichte für den Steuerberater](#19-monatliche-berichte-für-den-steuerberater)
+20. [Kimai-Übergangszeit](#20-kimai-übergangszeit)
 
 **[Häufige Fragen (FAQ)](#häufige-fragen-faq)**
 
@@ -290,11 +292,83 @@ Aktuell kann die Profilinformation nur von der Verwaltung (Administration) geän
 
 ---
 
+## 11. Reisekostenabrechnung einreichen
+
+Das System ermöglicht Ihnen, Dienstreisen vollständig digital abzurechnen — inklusive Verpflegungsmehraufwand (VMA), Fahrtkosten und Belegen.
+
+### Neue Abrechnung anlegen
+
+1. Klicken Sie im Menü auf **"Reisekosten"**.
+2. Klicken Sie auf **"Neue Abrechnung"**.
+3. Füllen Sie die Grunddaten aus:
+   - **Titel / Reisezweck** (z. B. "Kundengespräch Frankfurt")
+   - **Reiseziel**
+   - **Abfahrt** und **Rückkehr** (Datum und Uhrzeit)
+   - **Verkehrsmittel** (Privat-Pkw, Bahn, Flugzeug, …)
+   - Bei **Privat-Pkw**: gefahrene Kilometer eintragen (Pauschale 0,30 €/km)
+   - Bei **Bahn oder Flug**: Buchungsklasse und ggf. BahnCard angeben
+4. Speichern Sie — die Abrechnung wird als **Entwurf** angelegt.
+
+### VMA (Verpflegungsmehraufwand) — was ist das?
+
+Der VMA ist ein steuerfreier Pauschalbetrag, der Ihnen die erhöhten Essenskosten auf Dienstreisen ersetzt. Das System berechnet ihn automatisch:
+
+| Tagestyp | Betrag (2026) |
+|----------|--------------|
+| Volltag (24 h) | 28,00 € |
+| An- oder Abreisetag | 14,00 € |
+| Eintägige Reise (< 24 h) | 14,00 € |
+| Reisen unter 8 Stunden | kein VMA |
+
+Wenn Ihr Arbeitgeber Mahlzeiten stellt oder bezahlt, wird der VMA automatisch gekürzt: Frühstück −5,60 €, Mittag −11,20 €, Abend −11,20 €.
+
+**Wo trage ich das ein?** Im Reisekosten-Editor gibt es für jeden Reisetag eine Zeile. Setzen Sie dort die Häkchen, wenn eine Mahlzeit **durch den Arbeitgeber oder Veranstalter** gestellt wurde.
+
+### Belege erfassen
+
+1. Klicken Sie in der Abrechnung auf **"Beleg hinzufügen"**.
+2. Füllen Sie aus:
+   - **Datum** des Belegs
+   - **Bruttobetrag** und **Währung** (bei Fremdwährung zusätzlich den Wechselkurs)
+   - **Kategorie** (z. B. Übernachtung, Mahlzeit, Taxi, Fahrkarte)
+   - **MwSt.-Satz** (0 %, 7 % oder 19 %)
+   - **Beschreibung** (optional, aber hilfreich)
+   - Bei **Taxi**: Begründung angeben (Pflichtfeld)
+   - **Bereits durch Arbeitgeber bezahlt**: Häkchen setzen, wenn der Betrag bereits erstattet wurde — er wird dann von der Auszahlungssumme abgezogen
+   - **Datei hochladen**: Scan oder Foto des Originals (empfohlen)
+3. Speichern.
+
+### Abrechnung einreichen
+
+Wenn alle Reisetage und Belege vollständig sind:
+
+1. Öffnen Sie die Abrechnung.
+2. Prüfen Sie die **Zusammenfassung** am Ende der Seite:
+   - VMA gesamt, Fahrtkosten, Belege gesamt
+   - Bereits durch AG bezahlt
+   - **Zu überweisen** — das ist der Betrag, der Ihnen erstattet wird
+3. Klicken Sie auf **"Abrechnung einreichen"**.
+
+Die Abrechnung wechselt in den Status **"Eingereicht"** und kann nicht mehr verändert werden. Sie erhalten eine Bestätigung, und HR wird benachrichtigt.
+
+### Status meiner Abrechnungen
+
+| Status | Bedeutung |
+|--------|-----------|
+| **Entwurf** | Noch nicht eingereicht, kann bearbeitet werden |
+| **Eingereicht** | Wartet auf Prüfung durch HR |
+| **Genehmigt** | Abrechnung freigegeben, Auszahlung wird veranlasst |
+| **Abgelehnt** | HR hat die Abrechnung abgelehnt (Kommentar beachten) |
+
+> **Hinweis:** Eine abgelehnte Abrechnung kann nicht automatisch erneut eingereicht werden. Sprechen Sie mit HR, um zu klären, was geändert werden muss.
+
+---
+
 # Für Manager
 
 ---
 
-## 11. Urlaubsanträge genehmigen oder ablehnen
+## 12. Urlaubsanträge genehmigen oder ablehnen
 
 Als Manager werden Sie per **E-Mail benachrichtigt**, sobald eines Ihrer Teammitglieder einen Urlaubsantrag einreicht.
 
@@ -321,7 +395,7 @@ Der Mitarbeiter wird automatisch per E-Mail über Ihre Entscheidung informiert.
 
 ---
 
-## 12. Team-Kalender
+## 13. Team-Kalender
 
 Der Team-Kalender zeigt Ihnen auf einen Blick, wer wann abwesend ist.
 
@@ -335,7 +409,7 @@ Der Kalender ist rein informativ und zeigt nur genehmigte Abwesenheiten. Aussteh
 
 ---
 
-## 13. Überstunden im Blick behalten
+## 14. Überstunden im Blick behalten
 
 Als Manager können Sie die Überstundenkonten Ihrer Teammitglieder einsehen.
 
@@ -345,11 +419,38 @@ Im **Django-Admin-Bereich** (arbeitszeit.ihre-domain.de/admin/) können Manager 
 
 ---
 
+## 15. Reisekostenabrechnungen prüfen
+
+Als HR oder Administrator können Sie eingereichte Reisekostenabrechnungen Ihrer Mitarbeiter prüfen und genehmigen oder ablehnen.
+
+### Wo finde ich die Abrechnungen?
+
+1. Klicken Sie im Menü auf **"Reisekosten"** > **"HR-Übersicht"** (nur für HR/Admin sichtbar).
+2. Sie sehen alle **eingereichten** Abrechnungen sortiert nach Einreichdatum.
+
+### Abrechnung prüfen
+
+1. Klicken Sie auf eine Abrechnung.
+2. Prüfen Sie:
+   - Reisezeitraum, Ziel und Zweck
+   - VMA-Tage und Mahlzeitenkürzungen
+   - Belege (Kategorien, Beträge, hochgeladene Dateien)
+   - Fahrtkosten und ggf. Km-Angabe
+   - **Zu überweisen** — Endbetrag
+3. Klicken Sie auf **"Genehmigen"** oder **"Ablehnen"**.
+4. Bei Ablehnung: Tragen Sie im Feld **"Kommentar"** den Grund ein — der Mitarbeiter sieht diesen Kommentar.
+
+### PDF herunterladen
+
+Über die Detailansicht können Sie die Abrechnung als PDF exportieren — z. B. zur Ablage in der Buchhaltung.
+
+---
+
 # Für Administratoren
 
 ---
 
-## 14. Neuen Mitarbeiter anlegen
+## 16. Neuen Mitarbeiter anlegen
 
 Neue Mitarbeiter können sich selbst nicht registrieren — sie müssen von einem Administrator angelegt werden.
 
@@ -382,7 +483,7 @@ Neue Mitarbeiter können sich selbst nicht registrieren — sie müssen von eine
 
 ---
 
-## 15. Arbeitszeitpläne pflegen
+## 17. Arbeitszeitpläne pflegen
 
 Der **Arbeitszeitplan** legt fest, an welchen Wochentagen und wie viele Minuten ein Mitarbeiter arbeiten soll. Er ist die Grundlage für die Überstundenberechnung.
 
@@ -414,7 +515,7 @@ Der **Arbeitszeitplan** legt fest, an welchen Wochentagen und wie viele Minuten 
 
 ---
 
-## 16. Feiertage
+## 18. Feiertage
 
 Feiertage werden vom System **automatisch berücksichtigt** — Sie müssen nichts manuell eintragen.
 
@@ -426,7 +527,7 @@ An Feiertagen werden keine Soll-Stunden berechnet. Wenn ein Mitarbeiter an einem
 
 ---
 
-## 17. Monatliche Berichte für den Steuerberater
+## 19. Monatliche Berichte für den Steuerberater
 
 Am Ende jeden Monats (oder auf Anfrage) können Sie Arbeitszeitnachweise für alle Mitarbeiter als PDF oder Excel-Datei herunterladen.
 
@@ -454,7 +555,7 @@ Der Monatsbericht enthält:
 
 ---
 
-## 18. Kimai-Übergangszeit
+## 20. Kimai-Übergangszeit
 
 Das neue Arbeitszeit-Tool startet mit einem **sauberen Neuanfang** — es gibt keinen automatischen Import der alten Kimai-Daten.
 

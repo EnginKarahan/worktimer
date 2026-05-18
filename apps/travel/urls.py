@@ -16,8 +16,10 @@ urlpatterns = [
     path("<int:pk>/receipts/<int:receipt_pk>/delete/", views.travel_receipt_delete, name="receipt_delete"),
     # HR
     path("hr/", views.hr_travel_list, name="hr_list"),
+    path("hr/settings/", views.hr_travel_settings, name="hr_settings"),
     path("hr/<int:pk>/", views.hr_travel_detail, name="hr_detail"),
     path("hr/<int:pk>/approve/", views.hr_travel_approve, name="hr_approve"),
     path("hr/<int:pk>/reject/", views.hr_travel_reject, name="hr_reject"),
     path("hr/<int:pk>/pdf/", views.hr_travel_pdf, name="hr_pdf"),
+    path("hr/<int:pk>/resend/", views.hr_travel_resend, name="hr_resend"),
 ]

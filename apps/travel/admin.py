@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TravelExpenseReport, TravelDay, TravelReceipt
+from .models import TravelExpenseReport, TravelDay, TravelReceipt, TravelSettings
 
 
 class TravelDayInline(admin.TabularInline):
@@ -12,6 +12,15 @@ class TravelReceiptInline(admin.TabularInline):
     model = TravelReceipt
     extra = 0
     readonly_fields = ["net_amount", "vat_amount"]
+
+
+@admin.register(TravelSettings)
+class TravelSettingsAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return not TravelSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(TravelExpenseReport)

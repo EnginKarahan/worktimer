@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def notify_hr_new_travel_report(report_id):
-    from apps.travel.models import TravelExpenseReport
+    from apps.travel.models import TravelExpenseReport, TravelSettings
     from django.contrib.auth import get_user_model
     from django.core.mail import send_mail
     from django.conf import settings
@@ -15,13 +15,17 @@ def notify_hr_new_travel_report(report_id):
     User = get_user_model()
     try:
         report = TravelExpenseReport.objects.select_related("user").get(pk=report_id)
-        hr_emails = (
-            User.objects.filter(roles__role__in=["HR", "ADMIN"], is_active=True)
-            .exclude(email="")
-            .values_list("email", flat=True)
-            .distinct()
-        )
-        recipients = list(hr_emails)
+        ts = TravelSettings.get_solo()
+        if ts.hr_notification_email:
+            recipients = [ts.hr_notification_email]
+        else:
+            hr_emails = (
+                User.objects.filter(roles__role__in=["HR", "ADMIN"], is_active=True)
+                .exclude(email="")
+                .values_list("email", flat=True)
+                .distinct()
+            )
+            recipients = list(hr_emails)
         if not recipients:
             return
         send_mail(
@@ -73,7 +77,7 @@ def notify_employee_travel_decision(report_id):
 
 @shared_task
 def send_travel_report_to_accounting(report_id):
-    from apps.travel.models import TravelExpenseReport
+    from apps.travel.models import TravelExpenseReport, TravelSettings
     from apps.travel.services import generate_travel_pdf
     from django.core.mail import EmailMessage
     from django.conf import settings
@@ -85,7 +89,10 @@ def send_travel_report_to_accounting(report_id):
             .prefetch_related("receipts")
             .get(pk=report_id)
         )
-        accounting_email = getattr(settings, "TRAVEL_ACCOUNTING_EMAIL", "rechnung@alhambra-gesellschaft.de")
+        ts = TravelSettings.get_solo()
+        accounting_email = ts.accounting_email or getattr(
+            settings, "TRAVEL_ACCOUNTING_EMAIL", "rechnung@alhambra-gesellschaft.de"
+        )
         pdf_bytes = generate_travel_pdf(report)
         departure_date = report.departure_datetime.date()
         full_name = report.user.get_full_name() or report.user.username

@@ -38,6 +38,8 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
     command: celery -A config worker -l info --concurrency=2
+    volumes:
+      - ./data/arbeitszeit/media:/app/media
     env_file: ./arbeitszeit/.env
     depends_on:
       arbeitszeit:

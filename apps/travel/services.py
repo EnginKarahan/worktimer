@@ -288,9 +288,10 @@ class TravelExpenseService:
                 new={"status": "SUBMITTED"},
                 request=request,
             )
-            from apps.travel.tasks import notify_hr_new_travel_report, send_travel_report_to_accounting
-            notify_hr_new_travel_report.delay(report.pk)
-            send_travel_report_to_accounting.delay(report.pk)
+        from apps.travel.tasks import notify_hr_new_travel_report, send_travel_report_to_accounting
+        report_pk = report.pk
+        transaction.on_commit(lambda: notify_hr_new_travel_report.delay(report_pk))
+        transaction.on_commit(lambda: send_travel_report_to_accounting.delay(report_pk))
         return report
 
     def approve_report(self, report, reviewer, comment="", request=None):

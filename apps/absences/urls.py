@@ -5,5 +5,6 @@ app_name = "absences"
 urlpatterns = [
     path("", views.absence_list, name="list"),
     path("new/", views.absence_create, name="create"),
+    path("<int:pk>/edit/", views.absence_edit, name="edit"),
     path("team/", views.team_calendar, name="team_calendar"),
 ]

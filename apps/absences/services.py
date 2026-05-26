@@ -97,7 +97,14 @@ class ApprovalService:
         return entitlement - used
 
     def submit_request(
-        self, user, leave_type_code: str, start_date: date, end_date: date, reason: str = ""
+        self,
+        user,
+        leave_type_code: str,
+        start_date: date,
+        end_date: date,
+        reason: str = "",
+        nachweis_vorhanden: bool = False,
+        nachweis_eingereicht_am: "date | None" = None,
     ) -> AbsenceRequest:
         from apps.overtime.services import OvertimeCalculator
         leave_type = LeaveType.objects.get(code=leave_type_code)
@@ -113,6 +120,11 @@ class ApprovalService:
             if duration > ot_balance_days:
                 raise InsufficientOvertimeError(available=ot_balance_days, requested=duration)
 
+        extra_fields = {}
+        if leave_type_code == "FREISTELLUNG":
+            extra_fields["nachweis_vorhanden"] = bool(nachweis_vorhanden)
+            extra_fields["nachweis_eingereicht_am"] = nachweis_eingereicht_am
+
         req = AbsenceRequest.objects.create(
             user=user,
             leave_type=leave_type,
@@ -121,6 +133,7 @@ class ApprovalService:
             duration_days=duration,
             reason=reason,
             status="PENDING",
+            **extra_fields,
         )
 
         if hasattr(user, "userprofile") and user.userprofile.manager:
@@ -193,5 +206,40 @@ class ApprovalService:
         AuditLog.log(
             hr_user, "sick_leave_entered_by_hr", req,
             new={"employee": str(employee), "start": str(start_date), "end": str(end_date)},
+        )
+        return req
+
+    def enter_freistellung_for_employee(
+        self,
+        hr_user,
+        employee,
+        start_date: date,
+        end_date: date,
+        anlass: str = "",
+        nachweis_vorhanden: bool = False,
+        nachweis_eingereicht_am: "date | None" = None,
+    ):
+        """HR enters a Freistellung (e.g. THW, Feuerwehr) for an employee — auto-approved, supports backdating."""
+        req = self.submit_request(
+            user=employee,
+            leave_type_code="FREISTELLUNG",
+            start_date=start_date,
+            end_date=end_date,
+            reason=anlass or "Von HR erfasst",
+            nachweis_vorhanden=nachweis_vorhanden,
+            nachweis_eingereicht_am=nachweis_eingereicht_am,
+        )
+        if req.status == "PENDING":
+            self.approve(req, approver=hr_user, comment="Von HR direkt erfasst")
+        from apps.core.models import AuditLog
+        AuditLog.log(
+            hr_user, "freistellung_entered_by_hr", req,
+            new={
+                "employee": str(employee),
+                "start": str(start_date),
+                "end": str(end_date),
+                "anlass": anlass,
+                "nachweis_vorhanden": nachweis_vorhanden,
+            },
         )
         return req

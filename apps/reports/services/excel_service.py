@@ -48,20 +48,30 @@ def generate_monthly_excel(user, year: int, month: int) -> bytes:
 
     # Sheet 2: Abwesenheiten
     ws2 = wb.create_sheet("Abwesenheiten")
-    style_header(ws2, ["Von", "Bis", "Typ", "Tage", "Status", "AU liegt vor", "AU eingereicht am"])
+    style_header(ws2, ["Von", "Bis", "Typ", "Anlass", "Tage", "Status", "Bescheinigung liegt vor", "Eingereicht am"])
     absences = AbsenceRequest.objects.filter(
         user=user, start_date__year=year, status="APPROVED"
     ).select_related("leave_type")
     for a in absences:
-        is_sick = a.leave_type.code == "SICK"
+        code = a.leave_type.code
+        if code == "SICK":
+            nachweis_vorhanden = "Ja" if a.au_vorhanden else "Nein"
+            nachweis_datum = a.au_eingereicht_am.strftime("%d.%m.%Y") if a.au_eingereicht_am else "–"
+        elif code == "FREISTELLUNG":
+            nachweis_vorhanden = "Ja" if a.nachweis_vorhanden else "Nein"
+            nachweis_datum = a.nachweis_eingereicht_am.strftime("%d.%m.%Y") if a.nachweis_eingereicht_am else "–"
+        else:
+            nachweis_vorhanden = "–"
+            nachweis_datum = "–"
         ws2.append([
             a.start_date.strftime("%d.%m.%Y"),
             a.end_date.strftime("%d.%m.%Y"),
             a.leave_type.name,
+            a.reason if code == "FREISTELLUNG" else "",
             float(a.duration_days or 0),
             a.get_status_display(),
-            ("Ja" if a.au_vorhanden else "Nein") if is_sick else "–",
-            a.au_eingereicht_am.strftime("%d.%m.%Y") if is_sick and a.au_eingereicht_am else "–",
+            nachweis_vorhanden,
+            nachweis_datum,
         ])
 
     # Sheet 3: Urlaubskonto

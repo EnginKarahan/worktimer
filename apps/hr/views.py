@@ -21,6 +21,7 @@ from .forms import (
     SickLeaveForm,
     AbsenceRejectForm,
     AbsenceTypeChangeForm,
+    FreistellungForm,
 )
 from .forms import WorkScheduleForm, TimeEntryCreateForm, TimeEntryDeleteForm
 from .forms import VacationAdjustmentForm, OvertimeAdjustmentForm
@@ -338,13 +339,56 @@ def employee_correct_entry(request, pk, entry_pk):
 @hr_required
 def employee_absences(request, pk):
     employee = get_object_or_404(User, pk=pk)
-    absences = AbsenceRequest.objects.filter(user=employee).order_by("-start_date")
+    absences = list(
+        AbsenceRequest.objects.filter(user=employee)
+        .select_related("leave_type")
+        .order_by("-start_date")
+    )
+    # Konflikt-Hinweis: Bei APPROVED-Freistellungs-Tagen gleichzeitig Zeitbuchungen?
+    for a in absences:
+        a.has_entry_conflict = False
+        if a.leave_type and a.leave_type.code == "FREISTELLUNG" and a.status == "APPROVED":
+            a.has_entry_conflict = TimeEntry.objects.filter(
+                user=employee,
+                date__gte=a.start_date,
+                date__lte=a.end_date,
+            ).exists()
     return render(
         request,
         "hr/employee_absences.html",
         {
             "employee": employee,
             "absences": absences,
+        },
+    )
+
+
+@hr_required
+def enter_freistellung(request, pk):
+    employee = get_object_or_404(User, pk=pk)
+    form = FreistellungForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        service = ApprovalService()
+        try:
+            service.enter_freistellung_for_employee(
+                hr_user=request.user,
+                employee=employee,
+                start_date=form.cleaned_data["start_date"],
+                end_date=form.cleaned_data["end_date"],
+                anlass=form.cleaned_data.get("anlass", ""),
+                nachweis_vorhanden=form.cleaned_data.get("nachweis_vorhanden", False),
+                nachweis_eingereicht_am=form.cleaned_data.get("nachweis_eingereicht_am"),
+            )
+            messages.success(request, "Freistellung wurde eingetragen.")
+            return redirect("hr:employee_absences", pk=pk)
+        except Exception as e:
+            messages.error(request, str(e))
+    return render(
+        request,
+        "hr/enter_freistellung.html",
+        {
+            "employee": employee,
+            "form": form,
         },
     )
 

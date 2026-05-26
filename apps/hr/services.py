@@ -284,7 +284,7 @@ class SollIstCalculator:
                 start_date__month__lte=month,
                 end_date__year=year,
                 end_date__month__gte=month,
-                leave_type__code__in=["VACATION", "SICK", "UNPAID"],
+                leave_type__code__in=["VACATION", "SICK", "UNPAID", "FREISTELLUNG"],
             ).only("start_date", "end_date")
             for req in absence_requests:
                 current = req.start_date
@@ -504,7 +504,14 @@ class TimesheetBuilder:
                 soll = 0
             elif absence:
                 lc = absence.leave_type.code if absence.leave_type else ""
-                day_type = "sick" if "SICK" in lc else "vacation" if "VACATION" in lc else "absence"
+                if "SICK" in lc:
+                    day_type = "sick"
+                elif "VACATION" in lc:
+                    day_type = "vacation"
+                elif "FREISTELLUNG" in lc:
+                    day_type = "freistellung"
+                else:
+                    day_type = "absence"
                 soll = 0
             else:
                 day_type = "work"

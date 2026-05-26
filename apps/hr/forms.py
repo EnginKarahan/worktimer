@@ -111,6 +111,39 @@ class SickLeaveForm(forms.Form):
         return cleaned
 
 
+class FreistellungForm(forms.Form):
+    start_date = forms.DateField(
+        label="Von",
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    end_date = forms.DateField(
+        label="Bis",
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    anlass = forms.CharField(
+        label="Anlass (z. B. THW-Einsatz, Feuerwehr-Fortbildung, Schöffentätigkeit)",
+        widget=forms.Textarea(attrs={"rows": 2}),
+        required=False,
+    )
+    nachweis_vorhanden = forms.BooleanField(
+        label="Bescheinigung liegt vor",
+        required=False,
+    )
+    nachweis_eingereicht_am = forms.DateField(
+        label="Bescheinigung eingereicht am",
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get("start_date")
+        end = cleaned.get("end_date")
+        if start and end and end < start:
+            raise forms.ValidationError("Enddatum muss nach Startdatum liegen.")
+        return cleaned
+
+
 class AbsenceTypeChangeForm(forms.Form):
     from apps.absences.models import LeaveType
     leave_type = forms.ModelChoiceField(

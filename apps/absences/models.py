@@ -11,6 +11,7 @@ LEAVE_CODE_CHOICES = [
     ("UNPAID", "Unbezahlter Urlaub"),
     ("HOLIDAY", "Feiertag"),
     ("OVERTIME_COMP", "Überstundenausgleich"),
+    ("FREISTELLUNG", "Freistellung"),
 ]
 
 ABSENCE_STATUS_CHOICES = [
@@ -53,6 +54,9 @@ class AbsenceRequest(TimestampedModel):
     # Arbeitsunfähigkeitsbescheinigung (AU)
     au_vorhanden = models.BooleanField(default=False, verbose_name="AU liegt vor")
     au_eingereicht_am = models.DateField(null=True, blank=True, verbose_name="AU eingereicht am")
+    # Nachweis (z. B. Heranziehungsbescheid THW, Einsatzbescheinigung Feuerwehr) – v. a. für FREISTELLUNG
+    nachweis_vorhanden = models.BooleanField(default=False, verbose_name="Bescheinigung liegt vor")
+    nachweis_eingereicht_am = models.DateField(null=True, blank=True, verbose_name="Bescheinigung eingereicht am")
     # HR-Änderungsprotokoll
     type_changed_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL, related_name="changed_absences"

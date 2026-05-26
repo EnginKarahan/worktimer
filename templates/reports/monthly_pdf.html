@@ -55,19 +55,21 @@
 <table>
     <thead>
         <tr>
-            <th>Abwesenheitstyp</th><th>Von</th><th>Bis</th><th>Tage</th><th>AU-Bescheinigung</th>
+            <th>Abwesenheitstyp</th><th>Von</th><th>Bis</th><th>Tage</th><th>Bescheinigung</th>
         </tr>
     </thead>
     <tbody>
         {% for a in absences %}
         <tr>
-            <td>{{ a.leave_type.name }}</td>
+            <td>{{ a.leave_type.name }}{% if a.leave_type.code == "FREISTELLUNG" and a.reason %} <span style="color:#6b7280;font-size:9pt">({{ a.reason }})</span>{% endif %}</td>
             <td>{{ a.start_date|date:"d.m.Y" }}</td>
             <td>{{ a.end_date|date:"d.m.Y" }}</td>
             <td>{{ a.duration_days }}</td>
             <td>
                 {% if a.leave_type.code == "SICK" %}
-                    {% if a.au_vorhanden %}liegt vor{% if a.au_eingereicht_am %} ({{ a.au_eingereicht_am|date:"d.m.Y" }}){% endif %}{% else %}ausstehend{% endif %}
+                    {% if a.au_vorhanden %}AU liegt vor{% if a.au_eingereicht_am %} ({{ a.au_eingereicht_am|date:"d.m.Y" }}){% endif %}{% else %}AU ausstehend{% endif %}
+                {% elif a.leave_type.code == "FREISTELLUNG" %}
+                    {% if a.nachweis_vorhanden %}liegt vor{% if a.nachweis_eingereicht_am %} ({{ a.nachweis_eingereicht_am|date:"d.m.Y" }}){% endif %}{% else %}ausstehend{% endif %}
                 {% else %}–{% endif %}
             </td>
         </tr>

@@ -82,6 +82,38 @@ class TestSonderurlaubReducesSoll(TestCase):
         self.assertEqual(day["soll_minutes"], 0)
 
 
+class TestCancelRestoresSoll(TestCase):
+    def test_cancel_sick_restores_soll(self):
+        user = _make_user()
+        lt, _ = LeaveType.objects.get_or_create(
+            code="SICK", defaults={"name": "Krankheit"}
+        )
+        calc = SollIstCalculator()
+        baseline = calc.calculate_monthly_hours(user, 2026, 5)["soll_minutes"]
+
+        a = AbsenceRequest.objects.create(
+            user=user,
+            leave_type=lt,
+            start_date=date(2026, 5, 4),
+            end_date=date(2026, 5, 4),
+            duration_days=1,
+            status="APPROVED",
+        )
+        # Krankheitstag senkt das Soll
+        self.assertLess(
+            calc.calculate_monthly_hours(user, 2026, 5)["soll_minutes"], baseline
+        )
+
+        from apps.absences.services import ApprovalService
+        ApprovalService().cancel(a, hr_user=user, reason="war anwesend")
+        a.refresh_from_db()
+        self.assertEqual(a.status, "CANCELLED")
+        # Nach Storno greift das Soll wieder wie ohne Abwesenheit
+        self.assertEqual(
+            calc.calculate_monthly_hours(user, 2026, 5)["soll_minutes"], baseline
+        )
+
+
 class TestTimesheetDayType(TestCase):
     def test_freistellung_day_has_own_day_type(self):
         user = _make_user()

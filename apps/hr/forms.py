@@ -162,6 +162,14 @@ class AbsenceTypeChangeForm(forms.Form):
         self.fields["leave_type"].queryset = LeaveType.objects.all()
 
 
+class AbsenceCancelForm(forms.Form):
+    reason = forms.CharField(
+        label="Grund der Stornierung",
+        widget=forms.Textarea(attrs={"rows": 2}),
+        required=True,
+    )
+
+
 class AbsenceRejectForm(forms.Form):
     comment = forms.CharField(
         label="Ablehnungsgrund",

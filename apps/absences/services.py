@@ -191,6 +191,37 @@ class ApprovalService:
                 request=http_request,
             )
 
+    def cancel(self, request: AbsenceRequest, hr_user, reason: str = "", http_request=None):
+        """Storniert eine (z. B. fälschlich erfasste) Abwesenheit.
+
+        Status → CANCELLED, damit alle Soll/Ist-Berechnungen (Filter auf APPROVED)
+        den Tag wieder als normalen Arbeitstag werten. Ein evtl. bei der Genehmigung
+        gebuchter Überstundenausgleich-Abzug wird zurückgenommen; Urlaub wird durch
+        den Statuswechsel automatisch wieder gutgeschrieben.
+        """
+        from apps.core.models import AuditLog
+        with transaction.atomic():
+            req = AbsenceRequest.objects.select_for_update().get(pk=request.pk)
+            if req.status == "CANCELLED":
+                return req  # Idempotenz
+            old_status = req.status
+
+            if req.leave_type and req.leave_type.deducts_from_overtime:
+                from apps.overtime.models import OvertimeTransaction
+                OvertimeTransaction.objects.filter(reference_absence=req).delete()
+
+            req.status = "CANCELLED"
+            req.approval_comment = reason
+            req.save(update_fields=["status", "approval_comment"])
+
+            AuditLog.log(
+                hr_user, "absence_cancelled", req,
+                old={"status": old_status},
+                new={"reason": reason, "by": str(hr_user)},
+                request=http_request,
+            )
+        return req
+
     def enter_sick_leave_for_employee(self, hr_user, employee, start_date: date, end_date: date):
         """HR enters sick leave directly for an employee (auto-approved)."""
         req = self.submit_request(

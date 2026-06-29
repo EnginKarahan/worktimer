@@ -21,6 +21,7 @@ from .forms import (
     SickLeaveForm,
     AbsenceRejectForm,
     AbsenceTypeChangeForm,
+    AbsenceCancelForm,
     FreistellungForm,
 )
 from .forms import WorkScheduleForm, TimeEntryCreateForm, TimeEntryDeleteForm
@@ -344,10 +345,13 @@ def employee_absences(request, pk):
         .select_related("leave_type")
         .order_by("-start_date")
     )
-    # Konflikt-Hinweis: Bei APPROVED-Freistellungs-Tagen gleichzeitig Zeitbuchungen?
+    # Konflikt-Hinweis: An genehmigten "Soll=0"-Tagen (Krankheit, Urlaub,
+    # Freistellung, …) liegen gleichzeitig Zeitbuchungen vor → wahrscheinlich
+    # falsch erfasst, sollte geprüft/storniert werden.
+    from apps.absences.models import NO_SOLL_LEAVE_CODES
     for a in absences:
         a.has_entry_conflict = False
-        if a.leave_type and a.leave_type.code == "FREISTELLUNG" and a.status == "APPROVED":
+        if a.leave_type and a.leave_type.code in NO_SOLL_LEAVE_CODES and a.status == "APPROVED":
             a.has_entry_conflict = TimeEntry.objects.filter(
                 user=employee,
                 date__gte=a.start_date,
@@ -459,6 +463,42 @@ def change_absence_type(request, pk, absence_pk):
         "employee": employee,
         "absence": absence,
         "form": form,
+    })
+
+
+@hr_required
+def cancel_absence(request, pk, absence_pk):
+    """Eine (z. B. fälschlich erfasste) Abwesenheit stornieren."""
+    from apps.absences.models import AbsenceRequest
+    employee = get_object_or_404(User, pk=pk)
+    absence = get_object_or_404(AbsenceRequest, pk=absence_pk, user=employee)
+
+    if absence.status == "CANCELLED":
+        messages.info(request, "Diese Abwesenheit ist bereits storniert.")
+        return redirect("hr:employee_absences", pk=pk)
+
+    form = AbsenceCancelForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        ApprovalService().cancel(
+            absence,
+            hr_user=request.user,
+            reason=form.cleaned_data["reason"],
+            http_request=request,
+        )
+        messages.success(request, "Abwesenheit wurde storniert.")
+        return redirect("hr:employee_absences", pk=pk)
+
+    entries = TimeEntry.objects.filter(
+        user=employee,
+        date__gte=absence.start_date,
+        date__lte=absence.end_date,
+    ).order_by("date", "start_time")
+
+    return render(request, "hr/cancel_absence.html", {
+        "employee": employee,
+        "absence": absence,
+        "form": form,
+        "entries": entries,
     })
 
 

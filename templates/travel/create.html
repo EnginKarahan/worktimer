@@ -28,7 +28,7 @@
                 {% if form.destination.errors %}<p class="text-red-500 text-xs mt-1">{{ form.destination.errors|join:", " }}</p>{% endif %}
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.departure_datetime.label }}</label>
                     {{ form.departure_datetime }}
@@ -66,7 +66,7 @@
             </div>
 
             <div x-show="transport === 'TRAIN' || transport === 'PLANE'" x-cloak>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ form.booking_class.label }}</label>
                         {{ form.booking_class }}

@@ -12,7 +12,7 @@
     <form method="post">
         {% csrf_token %}
         
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {% for field in form %}
                 {% if field.name in "monday_minutes,tuesday_minutes,wednesday_minutes,thursday_minutes,friday_minutes,saturday_minutes,sunday_minutes" %}
                     <div class="mb-3">
@@ -24,7 +24,7 @@
             {% endfor %}
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div class="mb-3">
                 <label class="block text-sm font-medium text-gray-700">Gültig ab</label>
                 {{ form.effective_from }}

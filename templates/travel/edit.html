@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Abrechnung bearbeiten{% endblock %}
 {% block content %}
-<div class="mb-4 flex items-center justify-between">
+<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div class="flex items-center gap-2">
         <a href="{% url 'travel:list' %}" class="text-gray-400 hover:text-gray-600 text-sm">← Zurück</a>
         <h1 class="text-xl font-semibold text-gray-900">{{ report.title }}</h1>
@@ -84,7 +84,7 @@
                 {% if form.private_car_km.errors %}<p class="text-red-500 text-xs mt-1">{{ form.private_car_km.errors|join:", " }}</p>{% endif %}
             </div>
             <div x-show="transport === 'TRAIN' || transport === 'PLANE'">
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">{{ form.booking_class.label }}</label>
                         {{ form.booking_class }}
@@ -269,7 +269,7 @@
                         {{ receipt_form.currency }}
                     </div>
                     <div>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">{{ receipt_form.original_amount.label }}</label>
                                 {{ receipt_form.original_amount }}

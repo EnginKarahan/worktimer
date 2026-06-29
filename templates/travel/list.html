@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Reisekostenabrechnungen{% endblock %}
 {% block content %}
-<div class="flex justify-between mb-4">
+<div class="flex flex-col gap-3 sm:flex-row sm:justify-between mb-4">
     <h1 class="text-xl font-semibold text-gray-900">Meine Reisekostenabrechnungen</h1>
     <a href="{% url 'travel:create' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">+ Neue Abrechnung</a>
 </div>
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
+<div class="bg-white rounded-lg shadow overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>

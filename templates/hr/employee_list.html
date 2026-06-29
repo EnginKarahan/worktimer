@@ -2,12 +2,12 @@
 {% block title %}Mitarbeiterliste{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex items-center justify-between">
+<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="text-2xl font-bold text-gray-900">Mitarbeiter</h1>
     <a href="{% url 'hr:employee_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">+ Neuer Mitarbeiter</a>
 </div>
 
-<div class="bg-white shadow rounded-lg overflow-hidden">
+<div class="bg-white shadow rounded-lg overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>

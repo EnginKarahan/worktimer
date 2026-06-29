@@ -2,13 +2,13 @@
 {% block title %}{{ employee.get_full_name }}{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex items-center justify-between">
+<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div>
         <a href="{% url 'hr:employee_list' %}" class="text-blue-600 hover:underline text-sm">← Mitarbeiterliste</a>
         <h1 class="text-2xl font-bold text-gray-900 mt-1">{{ employee.get_full_name|default:employee.username }}</h1>
         <p class="text-gray-500 text-sm">{{ employee.email }}</p>
     </div>
-    <div class="space-x-2">
+    <div class="flex flex-wrap gap-2">
         <a href="{% url 'hr:employee_entries' employee.pk %}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-200">Zeiteinträge</a>
         <a href="{% url 'hr:employee_schedule' employee.pk %}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-200">Arbeitszeitplan</a>
         <a href="{% url 'hr:adjust_vacation' employee.pk %}" class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded text-sm hover:bg-yellow-200">Urlaub korrigieren</a>
@@ -51,7 +51,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div class="bg-white rounded-lg shadow p-4">
-        <div class="flex justify-between items-center mb-3">
+        <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Letzte Abwesenheiten</h2>
             <div class="space-x-2">
                 <a href="{% url 'hr:employee_absences' employee.pk %}" class="text-blue-600 text-sm hover:underline">Alle</a>
@@ -86,7 +86,7 @@
              }
          }"
          x-init="load()">
-        <div class="flex justify-between items-center mb-3">
+        <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Soll/Ist-Übersicht</h2>
             <div class="flex space-x-2">
                 <select x-model.number="year" @change="load()" class="border rounded px-2 py-1 text-sm">
@@ -137,7 +137,7 @@
     </div>
 
     <div class="bg-white rounded-lg shadow p-4">
-        <div class="flex justify-between items-center mb-3">
+        <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-3">
             <h2 class="text-lg font-semibold text-gray-700">Berichte</h2>
         </div>
         <div x-data="{ year: new Date().getFullYear(), month: new Date().getMonth() + 1 }" class="space-y-3">

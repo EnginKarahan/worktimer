@@ -21,7 +21,7 @@
 </div>
 
 {# Summary row #}
-<div class="grid grid-cols-3 gap-4 mb-2">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
     <div class="bg-white rounded-lg shadow p-3 text-center">
         <p class="text-xs text-gray-500">Soll</p>
         <p class="text-xl font-semibold">{{ total_soll_minutes|hours_decimal }} h</p>
@@ -37,7 +37,7 @@
         </p>
     </div>
 </div>
-<div class="grid grid-cols-2 gap-4 mb-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
     <div class="bg-white rounded-lg shadow p-3 text-center">
         <p class="text-xs text-gray-500">Übertrag Vormonat</p>
         <p class="text-xl font-semibold {% if carry_over_minutes >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-<div class="bg-white shadow rounded-lg overflow-hidden">
+<div class="bg-white shadow rounded-lg overflow-x-auto">
     <table class="min-w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-200">
             <tr>

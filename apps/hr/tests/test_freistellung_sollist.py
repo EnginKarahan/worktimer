@@ -55,6 +55,33 @@ class TestFreistellungReducesSoll(TestCase):
         )
 
 
+class TestSonderurlaubReducesSoll(TestCase):
+    def test_special_excluded_from_soll_and_calculators_agree(self):
+        user = _make_user()
+        lt, _ = LeaveType.objects.get_or_create(
+            code="SPECIAL", defaults={"name": "Sonderurlaub"}
+        )
+        # Mon 2026-05-04 .. Fri 2026-05-08 (5 working days)
+        AbsenceRequest.objects.create(
+            user=user,
+            leave_type=lt,
+            start_date=date(2026, 5, 4),
+            end_date=date(2026, 5, 8),
+            duration_days=5,
+            status="APPROVED",
+        )
+        calc = SollIstCalculator()
+        builder = TimesheetBuilder()
+        sollist = calc.calculate_monthly_hours(user, 2026, 5)
+        timesheet = builder.build(user, 2026, 5)
+        # Both calculators must treat Sonderurlaub as a free day (Soll 0)
+        self.assertEqual(
+            sollist["soll_minutes"], timesheet["total_soll_minutes"]
+        )
+        day = next(d for d in timesheet["days"] if d["date"] == date(2026, 5, 4))
+        self.assertEqual(day["soll_minutes"], 0)
+
+
 class TestTimesheetDayType(TestCase):
     def test_freistellung_day_has_own_day_type(self):
         user = _make_user()

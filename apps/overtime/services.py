@@ -19,7 +19,7 @@ class OvertimeCalculator:
     def _get_absence_dates(self, user, year: int, month: int) -> set:
         """Tage mit genehmigter, lohnfortgezahlter/unbezahlter Abwesenheit (kein SOLL)."""
         from datetime import timedelta, date as date_cls
-        from apps.absences.models import AbsenceRequest
+        from apps.absences.models import AbsenceRequest, NO_SOLL_LEAVE_CODES
 
         month_start = date_cls(year, month, 1)
         last_day = 28
@@ -37,7 +37,7 @@ class OvertimeCalculator:
             status="APPROVED",
             start_date__lte=month_end,
             end_date__gte=month_start,
-            leave_type__code__in=["VACATION", "SICK", "UNPAID", "FREISTELLUNG"],
+            leave_type__code__in=NO_SOLL_LEAVE_CODES,
         ).only("start_date", "end_date"):
             cur = max(req.start_date, month_start)
             while cur <= min(req.end_date, month_end):

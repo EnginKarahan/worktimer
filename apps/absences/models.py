@@ -14,6 +14,12 @@ LEAVE_CODE_CHOICES = [
     ("FREISTELLUNG", "Freistellung"),
 ]
 
+# Abwesenheits-Codes, deren Tage als "erfüllt" gelten → SOLL = 0, keine
+# Fehlstunden (echte bezahlte/unbezahlte Freistellung von der Arbeitspflicht).
+# OVERTIME_COMP bewusst NICHT enthalten: Überstundenausgleich muss das SOLL
+# behalten, damit der freie Tag die vorhandenen Überstunden abbaut.
+NO_SOLL_LEAVE_CODES = ["VACATION", "SICK", "UNPAID", "FREISTELLUNG", "SPECIAL"]
+
 ABSENCE_STATUS_CHOICES = [
     ("PENDING", "Ausstehend"),
     ("APPROVED", "Genehmigt"),

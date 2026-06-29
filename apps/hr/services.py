@@ -228,7 +228,7 @@ class SollIstCalculator:
         from apps.core.utils.holiday_utils import is_working_day
         from apps.accounts.models import WorkSchedule
         from apps.timesessions.models import TimeEntry
-        from apps.absences.models import AbsenceRequest
+        from apps.absences.models import AbsenceRequest, NO_SOLL_LEAVE_CODES
 
         profile = getattr(user, "userprofile", None)
         federal_state = getattr(profile, "federal_state", "BY")
@@ -284,7 +284,7 @@ class SollIstCalculator:
                 start_date__month__lte=month,
                 end_date__year=year,
                 end_date__month__gte=month,
-                leave_type__code__in=["VACATION", "SICK", "UNPAID", "FREISTELLUNG"],
+                leave_type__code__in=NO_SOLL_LEAVE_CODES,
             ).only("start_date", "end_date")
             for req in absence_requests:
                 current = req.start_date
@@ -416,7 +416,7 @@ class TimesheetBuilder:
 
     def build(self, user: User, year: int, month: int) -> dict:
         from apps.core.utils.holiday_utils import get_holidays_for_year
-        from apps.absences.models import AbsenceRequest
+        from apps.absences.models import AbsenceRequest, NO_SOLL_LEAVE_CODES
         from apps.timesessions.models import TimeEntry
         from apps.accounts.models import WorkSchedule
 
@@ -512,7 +512,13 @@ class TimesheetBuilder:
                     day_type = "freistellung"
                 else:
                     day_type = "absence"
-                soll = 0
+                # Soll nur für echte Freistellungen auf 0; sonstige Abwesenheiten
+                # (z. B. Überstundenausgleich) behalten ihr Soll – konsistent zum
+                # SollIstCalculator.
+                if lc in NO_SOLL_LEAVE_CODES:
+                    soll = 0
+                else:
+                    soll = schedule.get_minutes_for_weekday(weekday) if schedule else 480
             else:
                 day_type = "work"
                 soll = schedule.get_minutes_for_weekday(weekday) if schedule else 480

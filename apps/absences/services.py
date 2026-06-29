@@ -191,6 +191,62 @@ class ApprovalService:
                 request=http_request,
             )
 
+    def update_period(self, request: AbsenceRequest, hr_user, start_date: date,
+                      end_date: date, reason: str = "", http_request=None):
+        """Korrigiert den Zeitraum einer Abwesenheit (z. B. mehrtägige Krankmeldung
+        auf den tatsächlich betroffenen Tag verkürzen).
+
+        duration_days wird neu berechnet; ein evtl. gebuchter Überstundenausgleich-
+        Abzug wird an die neue Dauer angepasst. Bewusst ohne Urlaubs-/Überstunden-
+        Limit-Prüfung – HR-Korrektur darf überschreiben.
+        """
+        from apps.core.models import AuditLog
+        if end_date < start_date:
+            raise ValueError("Enddatum darf nicht vor dem Startdatum liegen.")
+        with transaction.atomic():
+            req = AbsenceRequest.objects.select_for_update().get(pk=request.pk)
+            old = {
+                "start_date": str(req.start_date),
+                "end_date": str(req.end_date),
+                "duration_days": str(req.duration_days),
+            }
+            req.start_date = start_date
+            req.end_date = end_date
+            req.duration_days = self._calculate_working_days(req.user, start_date, end_date)
+            if reason:
+                req.type_changed_by = hr_user
+                req.type_change_reason = (
+                    f"{req.type_change_reason}\n{reason}" if req.type_change_reason else reason
+                )
+            req.save()
+
+            # Überstundenausgleich-Abzug an die neue Dauer anpassen
+            if req.status == "APPROVED" and req.leave_type and req.leave_type.deducts_from_overtime:
+                from apps.overtime.models import OvertimeAccount, OvertimeTransaction
+                OvertimeTransaction.objects.filter(reference_absence=req).delete()
+                account, _ = OvertimeAccount.objects.get_or_create(user=req.user)
+                OvertimeTransaction.objects.create(
+                    account=account,
+                    transaction_type="overtime_comp_deduction",
+                    amount_minutes=-int(float(req.duration_days or 0) * 480),
+                    reference_absence=req,
+                    transaction_date=req.start_date,
+                    approved_by=hr_user,
+                )
+
+            AuditLog.log(
+                hr_user, "absence_period_changed", req,
+                old=old,
+                new={
+                    "start_date": str(start_date),
+                    "end_date": str(end_date),
+                    "duration_days": str(req.duration_days),
+                    "reason": reason,
+                },
+                request=http_request,
+            )
+        return req
+
     def cancel(self, request: AbsenceRequest, hr_user, reason: str = "", http_request=None):
         """Storniert eine (z. B. fälschlich erfasste) Abwesenheit.
 

@@ -114,6 +114,41 @@ class TestCancelRestoresSoll(TestCase):
         )
 
 
+class TestUpdatePeriodShortensAbsence(TestCase):
+    def test_shorten_sick_restores_second_day_soll(self):
+        user = _make_user()
+        lt, _ = LeaveType.objects.get_or_create(
+            code="SICK", defaults={"name": "Krankheit"}
+        )
+        calc = SollIstCalculator()
+        baseline = calc.calculate_monthly_hours(user, 2026, 5)["soll_minutes"]
+
+        # 2-tägige Krankmeldung Mo 04. + Di 05.
+        a = AbsenceRequest.objects.create(
+            user=user,
+            leave_type=lt,
+            start_date=date(2026, 5, 4),
+            end_date=date(2026, 5, 5),
+            duration_days=2,
+            status="APPROVED",
+        )
+        two_day_soll = calc.calculate_monthly_hours(user, 2026, 5)["soll_minutes"]
+        self.assertEqual(baseline - two_day_soll, 960)  # 2 × 8h
+
+        from apps.absences.services import ApprovalService
+        ApprovalService().update_period(
+            a, hr_user=user,
+            start_date=date(2026, 5, 4), end_date=date(2026, 5, 4),
+            reason="nur erster Tag krank",
+        )
+        a.refresh_from_db()
+        self.assertEqual(a.end_date, date(2026, 5, 4))
+        self.assertEqual(float(a.duration_days), 1.0)
+        # Nur noch ein Tag ohne Soll → Differenz 480 statt 960
+        one_day_soll = calc.calculate_monthly_hours(user, 2026, 5)["soll_minutes"]
+        self.assertEqual(baseline - one_day_soll, 480)
+
+
 class TestTimesheetDayType(TestCase):
     def test_freistellung_day_has_own_day_type(self):
         user = _make_user()

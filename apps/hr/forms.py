@@ -162,6 +162,30 @@ class AbsenceTypeChangeForm(forms.Form):
         self.fields["leave_type"].queryset = LeaveType.objects.all()
 
 
+class AbsenceEditForm(forms.Form):
+    start_date = forms.DateField(
+        label="Von",
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    end_date = forms.DateField(
+        label="Bis",
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    reason = forms.CharField(
+        label="Grund der Korrektur",
+        widget=forms.Textarea(attrs={"rows": 2}),
+        required=True,
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get("start_date")
+        end = cleaned.get("end_date")
+        if start and end and end < start:
+            raise forms.ValidationError("Enddatum muss nach Startdatum liegen.")
+        return cleaned
+
+
 class AbsenceCancelForm(forms.Form):
     reason = forms.CharField(
         label="Grund der Stornierung",

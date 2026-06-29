@@ -64,6 +64,7 @@
                 <td class="px-4 py-2 whitespace-nowrap">
                     <a href="{% url 'hr:change_absence_type' employee.pk absence.pk %}" class="text-blue-600 hover:underline text-xs">Typ ändern</a>
                     {% if absence.status != "CANCELLED" %}
+                        <a href="{% url 'hr:edit_absence' employee.pk absence.pk %}" class="text-blue-600 hover:underline text-xs ml-2">Bearbeiten</a>
                         <a href="{% url 'hr:cancel_absence' employee.pk absence.pk %}" class="text-red-600 hover:underline text-xs ml-2">Stornieren</a>
                     {% endif %}
                 </td>

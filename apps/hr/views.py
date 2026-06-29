@@ -22,6 +22,7 @@ from .forms import (
     AbsenceRejectForm,
     AbsenceTypeChangeForm,
     AbsenceCancelForm,
+    AbsenceEditForm,
     FreistellungForm,
 )
 from .forms import WorkScheduleForm, TimeEntryCreateForm, TimeEntryDeleteForm
@@ -460,6 +461,44 @@ def change_absence_type(request, pk, absence_pk):
         return redirect("hr:employee_absences", pk=pk)
 
     return render(request, "hr/change_absence_type.html", {
+        "employee": employee,
+        "absence": absence,
+        "form": form,
+    })
+
+
+@hr_required
+def edit_absence(request, pk, absence_pk):
+    """Zeitraum einer Abwesenheit korrigieren (z. B. mehrtägige Krankmeldung
+    auf den tatsächlich betroffenen Tag verkürzen)."""
+    from apps.absences.models import AbsenceRequest
+    employee = get_object_or_404(User, pk=pk)
+    absence = get_object_or_404(AbsenceRequest, pk=absence_pk, user=employee)
+
+    if absence.status == "CANCELLED":
+        messages.info(request, "Stornierte Abwesenheiten können nicht bearbeitet werden.")
+        return redirect("hr:employee_absences", pk=pk)
+
+    form = AbsenceEditForm(
+        request.POST or None,
+        initial={"start_date": absence.start_date, "end_date": absence.end_date},
+    )
+    if request.method == "POST" and form.is_valid():
+        try:
+            ApprovalService().update_period(
+                absence,
+                hr_user=request.user,
+                start_date=form.cleaned_data["start_date"],
+                end_date=form.cleaned_data["end_date"],
+                reason=form.cleaned_data["reason"],
+                http_request=request,
+            )
+            messages.success(request, "Zeitraum der Abwesenheit wurde korrigiert.")
+            return redirect("hr:employee_absences", pk=pk)
+        except Exception as e:
+            messages.error(request, str(e))
+
+    return render(request, "hr/edit_absence.html", {
         "employee": employee,
         "absence": absence,
         "form": form,

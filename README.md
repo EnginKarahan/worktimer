@@ -1,5 +1,7 @@
 # Arbeitszeit — Self-Hosted Time Tracking & HR Management
 
+[![Version](https://img.shields.io/github/v/tag/EnginKarahan/worktimer?sort=semver&label=version)](https://github.com/EnginKarahan/worktimer/tags)
+
 ## Produktbeschreibung
 
 **Arbeitszeit** ist eine selbst gehostete Webanwendung zur Arbeitszeiterfassung und Personalverwaltung, entwickelt mit Django. Sie ersetzt kommerzielle SaaS-Lösungen wie Kimai und ist vollständig DSGVO-konform, da alle Daten auf eigener Infrastruktur liegen.

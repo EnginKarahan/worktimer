@@ -177,15 +177,16 @@ class TimeEntryHRService:
                 original_project=entry.project,
             )
 
-            entry.delete()
-
+            entry_pk = entry.pk
             AuditLog.log(
                 hr_user,
                 "time_entry_deleted",
-                None,
-                new={"reason": reason, "by": str(hr_user), "entry_id": entry.pk},
+                entry,
+                new={"reason": reason, "by": str(hr_user), "entry_id": entry_pk},
                 request=http_request,
             )
+
+            entry.delete()
 
             return entry
 

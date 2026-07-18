@@ -35,3 +35,9 @@ SOCIALACCOUNT_PROVIDERS = {
         ]
     }
 }
+
+# --- SSO-Direkteinstieg: Klick auf die Nextcloud-Kachel loggt direkt ein ---
+# Unauthentifizierte Zugriffe direkt zum OIDC-Provider (statt Login-Formular);
+# LOGIN_ON_GET ueberspringt allauths Zwischenseite -> ein Redirect, kein Klick.
+LOGIN_URL = "/accounts/oidc/nextcloud/login/"
+SOCIALACCOUNT_LOGIN_ON_GET = True
